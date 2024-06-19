@@ -1,2 +1,3 @@
 # PSG4Mars
-Colection of Scripts and Files for running Plantary Spectrum Generator for Mars
+
+Collection of scripts and files for running Planetary Spectrum Generator for Mars.
