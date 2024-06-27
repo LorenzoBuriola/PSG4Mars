@@ -3,8 +3,9 @@
 from requests import post
 from warnings import warn
 
-def run_psg(cfg_file, type = 'rad', wgeo = 'y', wephm = 'n', watm = 'n', whdr = 'y', app = None,
-            out_file = 'temp.txt', local = True, verbose = True):
+def run_psg(cfg_file, out_file = 'temp.txt', 
+            type = 'rad', wgeo = 'y', wephm = 'n', watm = 'n', whdr = 'y', app = None,
+            local = True, verbose = True):
     """
     It runs PSG requesting to http
 

@@ -49,7 +49,7 @@ def cfg_to_json(file_path):
         json.dump(variables,ofile)
     return
 
-def dict_to_cfg(dd, file_path):
+def dict_to_cfg(dictionary, file_path):
     """
     It writes a dictionary to a configuration file for PSG (.txt)
 
@@ -59,6 +59,6 @@ def dict_to_cfg(dd, file_path):
     file_path: string - path of the configuration file
     """
     with open(file_path, 'w') as ofile:
-        for key in dd:
-            ofile.write(f'<{key}>{dd[key]}\n')
+        for key in dictionary:
+            ofile.write(f'<{key}>{dictionary[key]}\n')
     return
