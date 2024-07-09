@@ -4,7 +4,7 @@ from requests import post
 from warnings import warn
 
 def run_psg(cfg_file, out_file = 'temp.txt', 
-            type = 'rad', wgeo = 'y', wephm = 'n', watm = 'n', whdr = 'y', app = None,
+            type = 'rad', wgeo = 'y', wephm = 'n', watm = 'n', whdr = 'y',
             local = True, verbose = True):
     """
     It runs PSG requesting to http
@@ -19,7 +19,7 @@ def run_psg(cfg_file, out_file = 'temp.txt',
     """
 
     # Check if type selected exists
-    type_list = ['rad', 'noi', 'trn', 'atm', 'str', 'tel', 'srf', 'cfg', 'ret', 'all']
+    type_list = ['rad', 'noi', 'trn', 'atm', 'str', 'tel', 'srf', 'cfg', 'ret', 'lyo', 'lyr', 'all']
     if type not in type_list:
         warn(f'{type} is not a known type, output file will be empty!')
 
@@ -48,8 +48,6 @@ def run_psg(cfg_file, out_file = 'temp.txt',
         'whdr' : whdr,
         'file': open(cfg_file).read(),
     }
-    if app is not None:
-        data['app'] = app
     if local == True:
         url = 'http://localhost:3000/api.php'
     else:
