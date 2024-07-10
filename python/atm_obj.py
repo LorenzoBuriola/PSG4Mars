@@ -7,7 +7,7 @@ class gas:
         self.abun = abun
         self.unit = unit
         self.code = None
-        self.code = self.get_HITRAN_code()
+        self.code = f'HIT[{self.get_HITRAN_code()}]'
     
     def get_HITRAN_code(self):
         if self.code is not None:
