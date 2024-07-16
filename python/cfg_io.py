@@ -62,3 +62,4 @@ def dict_to_cfg(dictionary, file_path):
         for key in dictionary:
             ofile.write(f'<{key}>{dictionary[key]}\n')
     return
+
