@@ -20,3 +20,10 @@ class gas:
             else:
                 warn(f'{self.name} is not a HITRAN molecule')
                 return None
+            
+class aeros:
+    def __init__(self, name, abun, size, unit) -> None:
+        self.name = name
+        self.abun = abun
+        self.size = size
+        self.unit = unit
