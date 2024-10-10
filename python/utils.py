@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from scipy.constants import c,h,k
 
 def read_out(file_path):
     # Read the lines in file
@@ -32,3 +33,14 @@ def transform_date(date_str, format1 = '%Y/%m/%d %H:%M', format2 = '%Y-%m-%d--%H
     date = datetime.strptime(date_str, format1)
     new_format_date = datetime.strftime(date, format2)
     return new_format_date
+
+def BlackBody(nu,T):
+    c1 = 2*h*c**2*10**8
+    c2 = h*c/k*100
+    return c1*nu**3/(np.exp(c2*nu/T)-1)
+
+def generate_pressure_levels(ps):
+    tab = pd.read_csv('aps_bps.txt')
+    aps = tab.aps.to_numpy()*0.01
+    bps = tab.bps.to_numpy()
+    return aps + ps*bps

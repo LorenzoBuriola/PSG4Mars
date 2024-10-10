@@ -22,8 +22,10 @@ class gas:
                 return None
             
 class aeros:
-    def __init__(self, name, abun, size, unit) -> None:
+    def __init__(self, name, abun, unit, size, sunit, type) -> None:
         self.name = name
         self.abun = abun
-        self.size = size
         self.unit = unit
+        self.size = size
+        self.sunit = sunit
+        self.type = type
