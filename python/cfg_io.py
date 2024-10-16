@@ -1,6 +1,6 @@
 #Lorenzo Buriola - 12 giugno 2024
 
-# Script with utilities for reading and writing configuration files of PSG
+#Script with utilities for reading and writing configuration files of PSG
 
 import re
 import json
@@ -82,48 +82,6 @@ def read_atm_layers(cfg_dict):
     #TODO aggiungere trattazione dell'unita di misura
 
     return tab_df
-
-def define_atmosphere(cfg_dict, gglist, alist, otherlist):
-    cfg = cfg_dict
-    #TODO aggiungere gas non in datatbase senza profilo
-    #gas
-    gunit = []
-    gabun = []
-    gtype = []
-    for gname in gglist:
-        gg = atm_obj.gas(name=gname,abun='1',unit='scl')
-        gunit.append(gg.unit)
-        gabun.append(gg.abun)
-        gtype.append(gg.code)
-    cfg['ATMOSPHERE-GAS'] = ','.join(gglist)
-    cfg['ATMOSPHERE-UNIT'] = ','.join(gunit)
-    cfg['ATMOSPHERE-ABUN'] = ','.join(gabun)
-    cfg['ATMOSPHERE-TYPE'] = ','.join(gtype)
-    cfg['ATMOSPHERE-NGAS'] = len(gglist)
-    #aerosol
-    aunit = []
-    aabun = []
-    asize = []
-    asunit = []
-    atype = []
-    for aname in alist:
-        aer = atm_obj.aeros(name=aname,abun='1',unit='scl',size=1,sunit='scl', type='CRISM_Wolff')
-        aunit.append(aer.unit)
-        aabun.append(aer.abun)
-        asize.append(aer.size)
-        asunit.append(aer.sunit)
-        atype.append(aer.type)
-    cfg['ATMOSPHERE-AEROS'] = ','.join(alist)
-    cfg['ATMOSPHERE-AUNIT'] = ','.join(aunit)
-    cfg['ATMOSPHERE-AABUN'] = ','.join(aabun)
-    cfg['ATMOSPHERE-ASIZE'] = ','.join(asize)
-    cfg['ATMOSPHERE-ASUNI'] = ','.join(asunit)
-    cfg['ATMOSPHERE-NAERO'] = len(alist)
-    cfg['ATMOSPHERE-ATYPE'] = ','.join(atype)
-    #other
-    cfg['ATMOSPHERE-CONTINUUM'] = ','.join(otherlist)
-
-    return cfg
 
 """
 def generate_profile(cfg_dict, date, latitude, longitude, opath) -> None:

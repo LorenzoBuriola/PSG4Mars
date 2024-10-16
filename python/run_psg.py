@@ -1,5 +1,7 @@
 #Lorenzo Buriola 18 giugno 2024
 
+#Python Wrapper to run PSG.
+
 from requests import post
 from warnings import warn
 
