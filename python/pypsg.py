@@ -384,3 +384,35 @@ def generate_pressure_levels(ps):
     aps = tab.aps.to_numpy()*1e-5
     bps = tab.bps.to_numpy()
     return aps + ps*bps
+
+def vez_bin(high_res, low_res):
+    low_res.sort_values(by='freq',inplace=True)
+    high_res.sort_values(by='freq',inplace=True)
+    f_low = low_res.freq.to_numpy()
+    dw = f_low[1]-f_low[0]
+    f_high = high_res.freq.to_numpy()
+    ods = high_res.to_numpy()[:,1:].T
+    trn = np.exp(-ods)
+    cum_trn = np.cumprod(trn[::-1,:], axis=0)
+
+    ll = ods.shape[0]
+    vv = len(f_low)
+    c_tr = cum_trn[::-1,:]
+
+    tt = np.ones((ll+1, vv))
+    odt = np.zeros((ll, vv))
+
+    for i in reversed(range(ll)):
+        for j in range(vv):
+            ind = np.nonzero(np.abs(f_high-f_low[j])<=dw)
+            buff = np.mean(ods[i, ind])
+            buf = np.mean(c_tr[i,ind])/tt[i+1,j]
+            if buf > 0:
+                odt[i,j] = -np.log(buf)
+            else:
+                odt[i,j] = 0.7*buff
+            tt[i,j] = np.exp(-odt[i,j])*tt[i+1,j]
+
+    binned_df = pd.DataFrame(np.concatenate((f_low.reshape((-1,1)), odt.T), axis = 1), columns=low_res.columns)
+
+    return binned_df
