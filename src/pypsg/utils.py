@@ -31,7 +31,7 @@ def safe_log(x, eps=1e-323):
     np.log(result, out=result, where=result > 0)     
     return result
 
-def transform_date(date_str, format1 = '%Y/%m/%d %H:%M', format2 = '%Y-%m-%d--%H-%M'):
+def transform_date(date_str, format1 = '%Y/%m/%d %H:%M', format2 = '%Y%m%d-%H%M'):
     date = datetime.strptime(date_str, format1)
     new_format_date = datetime.strftime(date, format2)
     return new_format_date
@@ -48,4 +48,4 @@ def generate_pressure_levels(ps):
     tab = pd.read_csv('aps_bps.txt')
     aps = tab.aps.to_numpy()*1e-5
     bps = tab.bps.to_numpy()
-    return aps + ps*bps
+    return aps + ps*1e-3*bps
