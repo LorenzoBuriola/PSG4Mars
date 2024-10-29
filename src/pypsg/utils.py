@@ -49,3 +49,6 @@ def generate_pressure_levels(ps):
     aps = tab.aps.to_numpy()*1e-5
     bps = tab.bps.to_numpy()
     return aps + ps*1e-3*bps
+
+def name_file(type, date, lat, lon):
+    return f"{type}_{'{:.0f}'.format(lat)}_{'{:.0f}'.format(lon)}_{transform_date(date)}"

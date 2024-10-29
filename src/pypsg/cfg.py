@@ -7,7 +7,7 @@ import json
 import os
 
 from pypsg.run_psg import run_psg
-from pypsg.utils import transform_date
+from pypsg.utils import name_file
 
 def read_cfg(file_path):
     """
@@ -85,4 +85,4 @@ def generate_profile(cfg_dict, date, latitude, longitude, opath) -> None:
     cfg_dict['OBJECT-OBS-LONGITUDE'] = longitude
     dict_to_cfg(dictionary=cfg_dict, file_path='cfg_temp.txt')
     run_psg(cfg_file='cfg_temp.txt',type='cfg', wephm = 'y', watm='y', 
-                    out_file=f"{opath}cfg_{'{:.0f}'.format(latitude)}_{'{:.0f}'.format(longitude)}_{transform_date(date)}.txt", verbose=False)
+                    out_file=f"{opath}{name_file('cfg', date, latitude, longitude)}", verbose=False)

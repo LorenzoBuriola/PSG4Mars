@@ -4,7 +4,7 @@ import pandas as pd
 from warnings import warn
 
 class gas:
-    def __init__(self, name, abun, unit) -> None:
+    def __init__(self, name, abun = '1', unit = 'scl') -> None:
         self.name = name
         self.abun = abun
         self.unit = unit
@@ -24,7 +24,7 @@ class gas:
                 return None
             
 class aeros:
-    def __init__(self, name, abun, unit, size, sunit, type) -> None:
+    def __init__(self, name, abun = '1', unit = 'scl', size = '1', sunit = 'scl', type='CRISM_Wolff') -> None:
         self.name = name
         self.abun = abun
         self.unit = unit
@@ -33,15 +33,22 @@ class aeros:
         self.type = type
 
 class atmosphere:
-    def __init__(self) -> None:
+    def __init__(self, glist=[], alist=[], clist=[]) -> None:
         self.g_obj_list = []
+        for gg in glist:
+            self.g_obj_list.append(gas(name=gg))
+
         self.a_obj_list = []
-        self.clist = []
+        for aa in alist:
+            self.a_obj_list.append(aeros(name=aa))
+        
+        self.clist = clist
 
     def get_atmosphere(self, cfg) -> None:
         glist = cfg['ATMOSPHERE-GAS'].split(',')
         alist = cfg['ATMOSPHERE-AEROS'].split(',')
-        self.clist = cfg['ATMOSPHERE-CONTINUUM'].split(',')
+        if 'ATMOSPHERE-CONTINUUM' in cfg.keys():
+            self.clist = cfg['ATMOSPHERE-CONTINUUM'].split(',')
         gunit = cfg['ATMOSPHERE-UNIT'].split(',')
         gabun = cfg['ATMOSPHERE-ABUN'].split(',')
         ngas = float(cfg['ATMOSPHERE-NGAS'])
@@ -60,11 +67,10 @@ class atmosphere:
             warn(f"Number of aerosol listed ['ATMOSPHERE-AEROS'] ({len(alist)}) and varibale ['ATMOSPHERE-NAERO'] ({naeros}) are not equal")
             return(-1)
         
-        for gas,unit,abun in zip(glist,gunit,gabun):
-            self.g_obj_list.append(gas(name=gas, abun=abun, unit=unit))
-
-        for aeros,unit,abun,size,size_unit,type in zip(alist,aunit,aabun,asize,asunit,atype):
-            self.a_obj_list.append(aeros(name=aeros, abun=abun, unit=unit, size=size, sunit=size_unit,type=type))
+        for gg,unit,abun in zip(glist,gunit,gabun):
+            self.g_obj_list.append(gas(name=gg, abun=abun, unit=unit))
+        for aa,unit,abun,size,size_unit,type in zip(alist,aunit,aabun,asize,asunit,atype):
+            self.a_obj_list.append(aeros(name=aa, abun=abun, unit=unit, size=size, sunit=size_unit,type=type))
     
     def edit_cfg(self, cfg) -> None:
         gname = []
@@ -104,11 +110,11 @@ class atmosphere:
         #other
         cfg['ATMOSPHERE-CONTINUUM'] = ','.join(self.clist)
 
-    def add_gas(self, gname, gabun=1, gunit='scl') -> None:
+    def add_gas(self, gname, gabun='1', gunit='scl') -> None:
         gg = gas(gname, gabun, gunit)
         self.g_obj_list.append(gg)
     
-    def add_aeros(self, aname, aabun=1, aunit='scl', size = 1, sunit='scl', type='CRISM_Wolff') -> None:
+    def add_aeros(self, aname, aabun='1', aunit='scl', size = '1', sunit='scl', type='CRISM_Wolff') -> None:
         aer = aeros(aname, aabun, aunit, size, sunit, type)
         self.a_obj_list.append(aer)
     
