@@ -36,6 +36,7 @@ def OD_binning(high_res, low_res):
     binned_df = pd.DataFrame(np.concatenate((f_low.reshape((-1,1)), od_bin.T), axis = 1), columns=low_res.columns)
     return binned_df
 
+"""
 def vez_bin(high_res, low_res):
     low_res.sort_values(by='freq',inplace=True)
     high_res.sort_values(by='freq',inplace=True)
@@ -55,7 +56,7 @@ def vez_bin(high_res, low_res):
 
     for i in reversed(range(ll)):
         for j in range(vv):
-            ind = np.nonzero(np.abs(f_high-f_low[j])<=dw)
+            ind = np.nonzero(np.abs(f_high-f_low[j])<=dw/2)
             buff = np.mean(ods[i, ind])
             buf = np.mean(c_tr[i,ind])/tt[i+1,j]
             if buf > 0:
@@ -67,3 +68,4 @@ def vez_bin(high_res, low_res):
     binned_df = pd.DataFrame(np.concatenate((f_low.reshape((-1,1)), odt.T), axis = 1), columns=low_res.columns)
 
     return binned_df
+"""
