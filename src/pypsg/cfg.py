@@ -79,10 +79,19 @@ def read_atm_layers(cfg_dict):
 
     return tab_df
 
+def write_atm_layers(df, cfg_dict):
+    n_layer = df.shape[0]
+    cfg_dict['ATMOSPHERE-LAYERS'] = n_layer
+    names = df.colums
+    cfg_dict['ATMOSPHERE-LAYERS-MOLECULES'] = ",".join(names[2:])
+    for i in range(n_layer):
+        cfg_dict[f'ATMOSPHERE-LAYER-{i+1}'] = ','.join(df.iloc[i,:].to_list())
+
+
 def generate_profile(cfg_dict, date, latitude, longitude, opath) -> None:
     cfg_dict['OBJECT-DATE'] = date
     cfg_dict['OBJECT-OBS-LATITUDE'] = latitude
     cfg_dict['OBJECT-OBS-LONGITUDE'] = longitude
     dict_to_cfg(dictionary=cfg_dict, file_path='cfg_temp.txt')
     run_psg(cfg_file='cfg_temp.txt',type='cfg', wephm = 'y', watm='y', 
-                    out_file=f"{opath}{name_file('cfg', date, latitude, longitude)}", verbose=False)
+                    out_file=f"{opath}{name_file('cfg', date, latitude, longitude)}.txt", verbose=False)
