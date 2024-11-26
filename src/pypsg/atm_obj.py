@@ -18,7 +18,7 @@ class gas:
         if self.code is not None:
             return self.code
         else:
-            tab = pd.read_csv('molecular_metadata.txt', sep = '\s+')
+            tab = pd.read_csv('molecular_metadata.txt', sep = '\\s+')
             code = tab[tab.Formula == self.name]['Molecule_ID']
             if not code.empty:
                 return code.iloc[0]
@@ -51,32 +51,25 @@ class atmosphere:
         self.continuum_list = clist
 
     def get_atmosphere(self, cfg) -> None:
-        glist = cfg['ATMOSPHERE-GAS'].split(',')
-        alist = cfg['ATMOSPHERE-AEROS'].split(',')
+        if 'ATMOSPHERE-GAS' in cfg.keys():
+            glist = cfg['ATMOSPHERE-GAS'].split(',')
+            gunit = cfg['ATMOSPHERE-UNIT'].split(',')
+            gabun = cfg['ATMOSPHERE-ABUN'].split(',')
+            for gg,unit,abun in zip(glist,gunit,gabun):
+                self.gas_list.append(gas(name=gg, abun=abun, unit=unit))
+
+        if 'ATMOSPHERE-AEROS' in cfg.keys():
+            alist = cfg['ATMOSPHERE-AEROS'].split(',')
+            aunit = cfg['ATMOSPHERE-AUNIT'].split(',')
+            aabun = cfg['ATMOSPHERE-AABUN'].split(',')
+            asize = cfg['ATMOSPHERE-ASIZE'].split(',')
+            asunit = cfg['ATMOSPHERE-ASUNI'].split(',')
+            atype = cfg['ATMOSPHERE-ATYPE'].split(',')
+            for aa,unit,abun,size,size_unit,type in zip(alist,aunit,aabun,asize,asunit,atype):
+                self.aerosol_list.append(aeros(name=aa, abun=abun, unit=unit, size=size, sunit=size_unit,type=type))
+
         if 'ATMOSPHERE-CONTINUUM' in cfg.keys():
-            self.continuum_list = cfg['ATMOSPHERE-CONTINUUM'].split(',')
-        gunit = cfg['ATMOSPHERE-UNIT'].split(',')
-        gabun = cfg['ATMOSPHERE-ABUN'].split(',')
-        ngas = float(cfg['ATMOSPHERE-NGAS'])
-        #check
-        if ngas!=len(glist):
-            warn(f"Number of gas listed ['ATMOSPHERE-GAS'] ({len(glist)}) and varibale ['ATMOSPHERE-NGAS'] ({ngas}) are not equal")
-            return(-1)
-        aunit = cfg['ATMOSPHERE-AUNIT'].split(',')
-        aabun = cfg['ATMOSPHERE-AABUN'].split(',')
-        asize = cfg['ATMOSPHERE-ASIZE'].split(',')
-        asunit = cfg['ATMOSPHERE-ASUNI'].split(',')
-        atype = cfg['ATMOSPHERE-ATYPE'].split(',')
-        naeros = float(cfg['ATMOSPHERE-NAERO'])
-        # check
-        if naeros!=len(alist):
-            warn(f"Number of aerosol listed ['ATMOSPHERE-AEROS'] ({len(alist)}) and varibale ['ATMOSPHERE-NAERO'] ({naeros}) are not equal")
-            return(-1)
-        
-        for gg,unit,abun in zip(glist,gunit,gabun):
-            self.gas_list.append(gas(name=gg, abun=abun, unit=unit))
-        for aa,unit,abun,size,size_unit,type in zip(alist,aunit,aabun,asize,asunit,atype):
-            self.aerosol_list.append(aeros(name=aa, abun=abun, unit=unit, size=size, sunit=size_unit,type=type))
+            self.continuum_list = cfg['ATMOSPHERE-CONTINUUM'].split(',')     
     
     def edit_cfg(self, cfg) -> None:
         gname = []

@@ -82,10 +82,10 @@ def read_atm_layers(cfg_dict):
 def write_atm_layers(df, cfg_dict):
     n_layer = df.shape[0]
     cfg_dict['ATMOSPHERE-LAYERS'] = n_layer
-    names = df.colums
+    names = df.columns
     cfg_dict['ATMOSPHERE-LAYERS-MOLECULES'] = ",".join(names[2:])
     for i in range(n_layer):
-        cfg_dict[f'ATMOSPHERE-LAYER-{i+1}'] = ','.join(df.iloc[i,:].to_list())
+        cfg_dict[f'ATMOSPHERE-LAYER-{i+1}'] = ','.join(str(n) for n in df.iloc[i,:].to_list())
 
 
 def generate_profile(cfg_dict, date, latitude, longitude, opath) -> None:
