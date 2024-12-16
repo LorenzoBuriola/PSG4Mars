@@ -23,7 +23,7 @@ def read_out(file_path):
     header = header[1:].strip().split()
     header = ['freq' if ee == 'Wave/freq' else ee for ee in header]
 
-    df = pd.read_csv(file_path, delimiter="\s+", names=header, comment='#')
+    df = pd.read_csv(file_path, delimiter="\\s+", names=header, comment='#')
     return df
 
 def safe_log(x, eps=1e-323):

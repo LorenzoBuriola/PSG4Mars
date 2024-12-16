@@ -5,11 +5,15 @@ from warnings import warn
 
 class gas:
     def __init__(self, name, abun = '1', unit = 'scl') -> None:
-        self.name = name
+        self.code = None
         self.abun = abun
         self.unit = unit
-        self.code = None
-        self.code = f'HIT[{self.get_HITRAN_code()}]'
+        if name == 'HDO':
+            self.name = 'H2O'
+            self.code = 'HIT[1:4]'
+        else:
+            self.name = name
+            self.code = f'HIT[{self.get_HITRAN_code()}]'
 
     def __str__(self) -> str:
         return str([self.name, self.abun, self.unit, self.code])
