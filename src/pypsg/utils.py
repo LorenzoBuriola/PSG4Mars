@@ -5,26 +5,26 @@ import pandas as pd
 from datetime import datetime
 from scipy.constants import speed_of_light,Planck,Boltzmann
 
-def read_out(file_path):
-    # Read the lines in file
-    with open(file_path) as ifile:
-        bool = True
-        line = None
-        while bool:
-            prevline = line
-            line = ifile.readline()
-            if not line.startswith('#'):
-                bool = False
-
-    # Last commented line is header
-    header = prevline
-
-    # Strip line and remove '#' 
-    header = header[1:].strip().split()
-    header = ['freq' if ee == 'Wave/freq' else ee for ee in header]
-
-    df = pd.read_csv(file_path, delimiter="\\s+", names=header, comment='#')
-    return df
+def read_out(file_path, to_DF = True):
+    if to_DF is True:
+        # Read the lines in file
+        with open(file_path) as ifile:
+            bool = True
+            line = None
+            while bool:
+                prevline = line
+                line = ifile.readline()
+                if not line.startswith('#'):
+                    bool = False
+        # Last commented line is header
+        header = prevline
+        # Strip line and remove '#' 
+        header = header[1:].strip().split()
+        header = ['freq' if ee == 'Wave/freq' else ee for ee in header]
+        table = pd.read_csv(file_path, delimiter="\\s+", names=header, comment='#')
+    else:
+        table = np.loadtxt(file_path, delimiter=" ", comments='#')
+    return table
 
 def safe_log(x, eps=1e-323):
     result = np.where(x > eps, x, np.log(eps))     

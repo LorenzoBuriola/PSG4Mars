@@ -10,19 +10,27 @@ def T_shift(DT, cfg_df):
     cfg_out['SURFACE-TEMPERATURE'] = df.loc[0,'Temperature']
     return cfg_out
 
-gas_list = ['CO2','CO','H2O','O3']
+gas_list = ['CO2','CO','H2O','O3','HDO','HCl']
 cfg_path = '/home/buriola/PSG/PSG4Mars/data/cfg/'
 lyo_path = '/home/buriola/PSG/PSG4Mars/data/lyo/'
+lyr_path = '/home/buriola/PSG/PSG4Mars/data/lyr/'
 
-ranges = np.arange(100,2450,50)
+ranges = np.arange(100,3050,50)
 DTs = np.arange(-60, 70, 10)
 
+print('Starting computing ODs\n')
+
 for g_name in gas_list:
-    cfg_dict = cfg.read_cfg(f'{cfg_path}/OD_gen/{g_name}_cfg.txt')
+    print(f'Gas: {g_name}')
+    cfg_dict = cfg.read_cfg(f'{cfg_path}/OD_gen/cfg_{g_name}.txt')
     for DT in DTs:
+        print(f'Temperature shift: {DT}')
         temp = T_shift(DT, cfg_dict)
         for i in range(len(ranges)-1):
-            temp['GENERATOR-RANGE1'] = ranges[i]
+            temp['GENERATOR-RANGE1'] = ranges[i]+1e-4
             temp['GENERATOR-RANGE2'] = ranges[i+1]
-            cfg.dict_to_cfg(temp, f'{cfg_path}/OD_gen/{g_name}_{DT}_cfg.txt')
-            run_psg(cfg_file=f'{cfg_path}/OD_gen/{g_name}_{DT}_cfg.txt', type='lyo', out_file=f"{lyo_path}OD/lyo_{g_name}_{DT}_freq{ranges[i]}_{ranges[i+1]}.txt", verbose=False)
+            cfg.dict_to_cfg(temp, f'{cfg_path}/OD_gen/cfg_temp.txt')
+            run_psg(cfg_file=f'{cfg_path}/OD_gen/cfg_temp.txt', type='lyo', out_file=f"{lyo_path}{g_name}/lyo_{g_name}_{DT}_freq{ranges[i]}_{ranges[i+1]}.txt", verbose=False)
+            run_psg(cfg_file=f'{cfg_path}/OD_gen/cfg_temp.txt', type='lyr', out_file=f"{lyr_path}{g_name}/lyr_{g_name}_{DT}_freq{ranges[i]}_{ranges[i+1]}.txt", verbose=False)
+
+print("That's all!")
