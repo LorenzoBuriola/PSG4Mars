@@ -21,7 +21,7 @@ def read_out(file_path, to_DF = True):
         # Strip line and remove '#' 
         header = header[1:].strip().split()
         header = ['freq' if ee == 'Wave/freq' else ee for ee in header]
-        table = pd.read_csv(file_path, delimiter="\\s+", names=header, comment='#')
+        table = pd.read_csv(file_path, delimiter="\\s+", names=header, comment='#', dtype='float64')
     else:
         table = np.loadtxt(file_path, delimiter=" ", comments='#')
     return table

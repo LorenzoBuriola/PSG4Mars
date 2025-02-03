@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.stats import binned_statistic
 
 def OD_compute(data):
-    altitude = data.columns[1:].to_numpy(dtype=float)
+    altitude = data.columns[1:].to_numpy(dtype='float64')
     paths = np.diff(altitude).reshape(1,-1)
     df_out = data.iloc[:,:-1].copy()
     df_out.iloc[:,1:] = data.iloc[:,1:-1]*paths
