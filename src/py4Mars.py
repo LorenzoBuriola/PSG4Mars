@@ -42,13 +42,15 @@ def generate_p_levels(latitudes, longitudes, dates, ipath, ofile = 'p_edges.npy'
         np.save(ofile, ee)
     return ee
 
-def generate_mean_profiles(latitudes, longitudes, dates, ipath, p_edges = 'p_edges.npy', ofile = None):
+def generate_mean_profiles(latitudes, longitudes, dates, ipath, p_filename = 'p_edges.npy', ofile = None):
     dates_list = dates.strftime('%Y/%m/%d %H:%M').to_list()
     tt = []
     h2o = []
     co = []
     co2 = []
     o3 = []
+
+    p_edges = np.load(p_filename)
 
     for date in dates_list:
         for lat in latitudes:
@@ -82,8 +84,8 @@ def generate_mean_profiles(latitudes, longitudes, dates, ipath, p_edges = 'p_edg
         'O3' : meanO3
     })
     df = df.loc[::-1].reset_index(drop=True)
-    df.loc[0,'H2O'] = df.loc[2,'H2O']
-    df.loc[1,'H2O'] = df.loc[2,'H2O']
+    #df.loc[0,'H2O'] = df.loc[2,'H2O']
+    #df.loc[1,'H2O'] = df.loc[2,'H2O']
 
     df['HCl'] = 1e-9
 
@@ -91,7 +93,7 @@ def generate_mean_profiles(latitudes, longitudes, dates, ipath, p_edges = 'p_edg
         df.to_csv('mean_profile.csv', index=False, float_format='%.4e')
     return df
 
-def write_mean_cfg(df_prof, opath) -> None:
+def write_mean_cfg(df_prof, opath, ofile = 'mean_cfg.txt') -> None:
     if isinstance(df_prof, str):
         atm = pd.read_csv(df_prof, header=0)
     else:
@@ -128,7 +130,7 @@ def write_mean_cfg(df_prof, opath) -> None:
         cfg_df[f'ATMOSPHERE-LAYER-{i+1}'] = ','.join('{:.4e}'.format(n) for n in atm.iloc[i,:].to_list())
     cfg_df['ATMOSPHERE-PRESSURE'] = atm.loc[0,'Pressure']
     cfg_df['SURFACE-TEMPERATURE'] = atm.loc[0,'Temperature']
-    cfg.dict_to_cfg(cfg_df, f'{opath}mean_cfg.txt')
+    cfg.dict_to_cfg(cfg_df, f'{opath}{ofile}')
 
 def T_shift(DT, cfg_df):
     cfg_out = cfg_df.copy()
@@ -138,19 +140,22 @@ def T_shift(DT, cfg_df):
     cfg_out['SURFACE-TEMPERATURE'] = df.loc[0,'Temperature']
     return cfg_out
 
-def generate_OD_cfg(gas_list, ipath, opath):
+def generate_OD_cfg(gas_list, ipath, opath, res = 1e-4):
     cfg_dict = cfg.read_cfg(f'{ipath}mean_cfg.txt')
     for g_name in gas_list:
-        if g_name == 'HDO':
-            aa = '0.00172'
-        else:
-            aa = '1'
         temp = cfg_dict.copy()
         atmos = atm.atmosphere()
         atmos.get_atmosphere(temp)
-        atmos.add_gas(g_name, gabun=aa)
+        atmos.add_gas(g_name)
         atmos.continuum_list = ['Refraction', 'Layering', 'Contributions']
         atmos.edit_cfg(temp)
+        if g_name == 'H2O':
+            temp['ATMOSPHERE-GAS'] = 'H2O,H2O,H2O,H2O'
+            temp['ATMOSPHERE-UNIT'] = 'scl,scl,scl,scl'
+            temp['ATMOSPHERE-ABUN'] = '1,1,1,1'
+            temp['ATMOSPHERE-TYPE'] = 'HIT[1:1],HIT[1:2],HIT[1:3],HIT[1:5]'
+            temp['ATMOSPHERE-NGAS'] = 4
+        temp['GENERATOR-RESOLUTION'] = res
         cfg.dict_to_cfg(dictionary=temp,file_path=f'{opath}cfg_{g_name}.txt')
                 
     

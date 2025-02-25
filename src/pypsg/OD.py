@@ -14,10 +14,8 @@ def OD_compute(data):
     df_out.columns = names
     return df_out
     
-def OD_binning(high_res, low_res):
-    low_res.sort_values(by='freq',inplace=True)
+def OD_binning(high_res, f_low):
     high_res.sort_values(by='freq',inplace=True)
-    f_low = low_res.freq.to_numpy()
     dw = f_low[1]-f_low[0]
     edges = f_low-dw/2
     edges = np.append(edges,f_low[-1]+dw/2)
@@ -33,7 +31,7 @@ def OD_binning(high_res, low_res):
     od_bin = trn_bin
     np.log(od_bin,out=od_bin,where=binned!=0)
     od_bin = np.where(binned!=0, -od_bin, od_bin)
-    binned_df = pd.DataFrame(np.concatenate((f_low.reshape((-1,1)), od_bin.T), axis = 1), columns=low_res.columns)
+    binned_df = pd.DataFrame(np.concatenate((f_low.reshape((-1,1)), od_bin.T), axis = 1), columns=high_res.columns)
     return binned_df
 
 """
