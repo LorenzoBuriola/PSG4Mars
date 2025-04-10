@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pypsg"
+authors = [
+    {name = "Lorenzo Buriola", email = "lorenzo.buriola@unibo.it"},
+]
+description = "Python integration for Planetary Spectrum Generator"
+dependencies = [
+    "requests",
+    "numpy",
+    "pandas",
+    "scipy"
+]
+dynamic = ["version"]

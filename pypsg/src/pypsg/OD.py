@@ -15,17 +15,21 @@ def OD_compute(data):
     return df_out
     
 def OD_binning(high_res, f_low):
+    #Sort values by frequency not to mess up the binning
     high_res.sort_values(by='freq',inplace=True)
+    #Find the frequency resolution and the bins edges
     dw = f_low[1]-f_low[0]
     edges = f_low-dw/2
     edges = np.append(edges,f_low[-1]+dw/2)
+    #Get the high frequency and optical depth values
     f_high = high_res.freq.to_numpy()
     ods = high_res.to_numpy()[:,1:].T
+    #Compute transmittance and cumulative transmittance
     trn = np.exp(-ods)
     cum_trn = np.cumprod(trn[::-1,:], axis=0)[::-1,:]
     binned,_,_ = binned_statistic(x=f_high,values=cum_trn,statistic='mean',bins=edges)
     sec_binned,_,_ = binned_statistic(x=f_high,values=ods,statistic='mean',bins=edges)
-    trn_bin = 0.7*sec_binned
+    trn_bin = sec_binned
     np.divide(binned[:-1],binned[1:], out=trn_bin[:-1], where=np.logical_and(binned[:-1]!=0, binned[1:]!=0))
     trn_bin[-1] = binned[-1]
     od_bin = trn_bin
