@@ -163,6 +163,7 @@ cython_debug/
 
 #data folder
 /data
+/NO_BACKUP
 
 #vscode
 .vscode/
