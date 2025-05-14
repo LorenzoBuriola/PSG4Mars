@@ -7,21 +7,21 @@ from pypsg.utils import read_out
 
 
 gasses = ['CO2', 'CO', 'H2O', 'HDO', 'O3', 'HCl']
-ranges = np.arange(100,3050,50)
+ranges = np.arange(49.995, 3099.995, 50)
 DTs = np.arange(-60, 70, 10)
 
-lyo_path = '/home/buriola/PSG/PSG4Mars/data/lyo/'
-od_path = '/home/buriola/PSG/PSG4Mars/data/od/'
+lyo_path = '/home/buriola/PSG/PSG4Mars/NO_BACKUP/data/lyo/'
+od_path = '/home/buriola/PSG/PSG4Mars/NO_BACKUP/data/od/'
 
-tab = read_out(f'{lyo_path}CO2/lyo_CO2_0_freq100_150.txt')
+tab = read_out(f'{lyo_path}CO2/lyo_CO2_0_freq49_99.txt')
 hh = tab.columns[1:-1].to_numpy(dtype='float64')
 
 for g_name in gasses:
     print(f'Gas: {g_name}')
     for i in range(len(ranges)-1):
-        path = f'{od_path}{g_name}/od_{g_name}_freq{ranges[i]}_{ranges[i+1]}.nc'
-        if os.path.exists(path):
-            continue
+        path = f'{od_path}{g_name}/od_{g_name}_freq{ranges[i]+0.005:.0f}_{ranges[i+1]+0.005:.0f}.nc'
+        #if os.path.exists(path):
+        #    continue
         print(f'Frequency window: {ranges[i]}-{ranges[i+1]}')
         print('Computing OD...')
         ee = False
@@ -30,7 +30,7 @@ for g_name in gasses:
         for DT in DTs:
             print(f'Temperature shift: {DT}')
             try:
-                tab = read_out(f'{lyo_path}{g_name}/lyo_{g_name}_{DT}_freq{ranges[i]}_{ranges[i+1]}.txt')
+                tab = read_out(f'{lyo_path}{g_name}/lyo_{g_name}_{DT}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}.txt')
                 tab = OD.OD_compute(tab)
                 tab = OD.OD_binning(tab, low_freqs)
                 tab = tab.to_numpy()[:,1:]

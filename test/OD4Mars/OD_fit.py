@@ -1,8 +1,8 @@
 import xarray as xr
 import numpy as np
 
-coeff_path = '/home/buriola/PSG/PSG4Mars/data/coeff/'
-od_path = '/home/buriola/PSG/PSG4Mars/data/od/'
+coeff_path = '/home/buriola/PSG/PSG4Mars/NO_BACKUP/data/OD4Mars/coeff/'
+od_path = '/home/buriola/PSG/PSG4Mars/NO_BACKUP/data/OD4Mars/od/'
 
 gasses = ['CO2','CO' ,'H2O', 'HDO', 'O3', 'HCl']
 ranges = np.arange(100,3050,50)
@@ -22,10 +22,11 @@ for g_name in gasses:
         p2 = p2.rename_vars({var: f"{var}_2" for var in p2.data_vars})
         p3 = p3.rename_vars({var: f"{var}_3" for var in p3.data_vars})
         ds = xr.merge([p2, p3])
-        ds.assign(mask0 = mask0)
-        ds.assign(RMSE2 = RMSE2)
-        ds.assign(RMSE3 = RMSE3)
+        ds = ds.assign(mask0 = mask0)
+        ds = ds.assign(RMSE2 = RMSE2)
+        ds = ds.assign(RMSE3 = RMSE3)
         ds.to_netcdf(f'{coeff_path}{g_name}/coeff_{g_name}_freq{ranges[i]}_{ranges[i+1]}.nc')
+print('Done')
         
         
 
