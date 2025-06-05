@@ -127,13 +127,6 @@ class atmosphere:
     def add_aeros(self, aname, aabun='1', aunit='scl', size = '1', sunit='scl', type='CRISM_Wolff') -> None:
         aer = aeros(aname, aabun, aunit, size, sunit, type)
         self.aerosol_list.append(aer)
-    
-    def add_continuum(self, cont):
-        self.continuum_list.append(cont)
-
-    def remove_gas(self, gname):
-        gg = gas(gname)
-        self.gas_list.remove(gg)
 
     def remove_gas(self, aname):
         aer = gas(aname)

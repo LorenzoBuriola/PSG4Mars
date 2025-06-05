@@ -1,5 +1,5 @@
 # run_psg
-
+import docker_utils
 from requests import post
 from warnings import warn
 
@@ -50,8 +50,10 @@ def run_psg(cfg_file, out_file = 'temp.txt',
     }
     if local == True:
         url = 'http://localhost:3000/api.php'
-        #TODO if not is_container_running('psg'):
-        #TODO   warn('container psg is not running, please start container')
+        # Check if PSG is running locally
+        if not docker_utils.is_container_running('psg', 'unix:///run/user/1024/docker.sock'):
+            warn('Container psg is not running, please start container')
+            return
     else:
         url = 'https://psg.gsfc.nasa.gov/api.php'
         warn('PSG is not running locally')

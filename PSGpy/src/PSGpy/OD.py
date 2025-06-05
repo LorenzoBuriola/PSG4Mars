@@ -19,8 +19,8 @@ def OD_binning(high_res, f_low):
     high_res.sort_values(by='freq',inplace=True)
     #Find the frequency resolution and the bins edges
     dw = f_low[1]-f_low[0]
-    edges = f_low-dw/2
-    edges = np.append(edges,f_low[-1]+dw/2)
+    edges = (f_low-dw/2).tolist()
+    edges.append(f_low[-1]+dw/2)
     #Get the high frequency and optical depth values
     f_high = high_res.freq.to_numpy()
     ods = high_res.to_numpy()[:,1:].T

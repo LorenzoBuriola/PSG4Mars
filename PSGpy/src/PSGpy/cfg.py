@@ -6,8 +6,8 @@ import re
 import json
 import os
 
-from pypsg.run_psg import run_psg
-from pypsg.utils import name_file
+from PSGpy.run_psg import run_psg
+from PSGpy.utils import name_file
 
 def read_cfg(file_path):
     """
@@ -93,5 +93,5 @@ def generate_profile(cfg_dict, date, latitude, longitude, opath) -> None:
     cfg_dict['OBJECT-OBS-LATITUDE'] = latitude
     cfg_dict['OBJECT-OBS-LONGITUDE'] = longitude
     dict_to_cfg(dictionary=cfg_dict, file_path='cfg_temp.txt')
-    run_psg(cfg_file='cfg_temp.txt',type='cfg', wephm = 'y', watm='y', 
+    run_psg(cfg_file='cfg_temp.txt', type='cfg', wephm = 'y', watm='y', 
                     out_file=f"{opath}{name_file('cfg', date, latitude, longitude)}.txt", verbose=False)

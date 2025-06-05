@@ -10,7 +10,7 @@ def read_out(file_path, to_DF = True):
         # Read the lines in file
         with open(file_path) as ifile:
             bool = True
-            line = None
+            line = str()
             while bool:
                 prevline = line
                 line = ifile.readline()
