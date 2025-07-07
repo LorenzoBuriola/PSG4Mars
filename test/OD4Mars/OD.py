@@ -29,14 +29,22 @@ def OD_binning(high_res, f_low):
     cum_trn = np.cumprod(trn[::-1,:], axis=0)[::-1,:]
     binned,_,_ = binned_statistic(x=f_high,values=cum_trn,statistic='mean',bins=edges)
     sec_binned,_,_ = binned_statistic(x=f_high,values=ods,statistic='mean',bins=edges)
-    trn_bin = sec_binned
-    np.divide(binned[:-1],binned[1:], out=trn_bin[:-1], where=np.logical_and(binned[:-1]!=0, binned[1:]!=0))
-    trn_bin[-1] = binned[-1]
-    od_bin = trn_bin
-    np.log(od_bin,out=od_bin,where=binned!=0)
-    od_bin = np.where(binned!=0, -od_bin, od_bin)
-    binned_df = pd.DataFrame(np.concatenate((f_low.reshape((-1,1)), od_bin.T), axis = 1), columns=high_res.columns)
-    return binned_df
+    
+    od_bin = -sec_binned
+    np.divide(binned[:-1], binned[1:], out=od_bin[:-1], where=(binned[1:] != 0) & (binned[:-1] != 0))
+    np.log(od_bin[:-1], out=od_bin[:-1], where=(binned[1:] != 0) & (binned[:-1] != 0))
+    od_bin[:-1] = -od_bin[:-1]  # Convert transmittance to optical depth
+    od_bin[-1] = -np.log(binned[-1]) 
+
+    #Compute the error
+    #pr_error,_,_ = binned_statistic(x=f_high,values=cum_trn,statistic='std',bins=edges)
+
+    sec_error,_,_ = binned_statistic(x=f_high,values=ods,statistic='std',bins=edges)
+    error = sec_error
+    #error[:-1][mask] = np.sqrt((pr_error[:-1]/binned[:-1])**2 + (pr_error[1:]/binned[1:])**2)
+    #error[-1] = pr_error[-1]/binned[-1]
+
+    return od_bin.T, error.T
 
 """
 def vez_bin(high_res, low_res):

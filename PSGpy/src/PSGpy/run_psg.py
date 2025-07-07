@@ -1,5 +1,5 @@
 # run_psg
-import docker_utils
+import PSGpy.docker_utils as docker_utils
 from requests import post
 from warnings import warn
 

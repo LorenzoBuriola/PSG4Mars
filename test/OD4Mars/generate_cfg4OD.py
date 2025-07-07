@@ -1,9 +1,12 @@
 import numpy as np
-import pypsg.cfg as cfg
-import pypsg.atm_obj as atm
+import PSGpy.cfg as cfg
+import PSGpy.atm_obj as atm
 
 def generate_OD_cfg(gas_list, ipath, opath, res = 1e-4):
     cfg_dict = cfg.read_cfg(f'{ipath}mean_cfg.txt')
+    cfg_dict['OBJECT-DATE'] = '2019/12/23 00:00'
+    cfg_dict['OBJECT-OBS-LONGITUDE']='0.00'
+    cfg_dict['OBJECT-OBS-LATITUDE']='0.00'
     for g_name in gas_list:
         temp = cfg_dict.copy()
         atmos = atm.atmosphere()
@@ -22,7 +25,7 @@ def generate_OD_cfg(gas_list, ipath, opath, res = 1e-4):
 
 gas_list = ['CO2','CO','H2O','O3','HCl','HDO']
 
-ipath = '/home/buriola/PSG/PSG4Mars/NO_BACKUP/data/cfg/',
-opath='/home/buriola/PSG/PSG4Mars/NO_BACKUP/data/cfg/OD_gen/'
+ipath = '/home/buriola/Mars/PSG4Mars/NO_BACKUP/data/OD4Mars/cfg/'
+opath='/home/buriola/Mars/PSG4Mars/NO_BACKUP/data/OD4Mars/cfg/OD_gen/'
 
 generate_OD_cfg(gas_list, ipath, opath)

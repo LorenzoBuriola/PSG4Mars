@@ -3,7 +3,6 @@
 import docker
 from docker.errors import NotFound, APIError
 
-
 def is_container_running(name, url):
     RUNNING = "running"
     docker_client = docker.DockerClient(base_url=url)

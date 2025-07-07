@@ -5,7 +5,7 @@
 
 import numpy as np
 import pandas as pd
-import pypsg.cfg as cfg
+import PSGpy.cfg as cfg
 
 def generate_profiles(latitudes, longitudes, dates, opath, ipath='basic_cfg.txt',
                       verbose = False) -> None:
@@ -17,7 +17,6 @@ def generate_profiles(latitudes, longitudes, dates, opath, ipath='basic_cfg.txt'
                 if verbose:
                     print(f"Generating profile for date: {date}, lat: {lat}, long: {long}")
                 cfg.generate_profile(cfg_df, date, lat, long, opath=opath)
-
 
 # INPUTS
 latitudes = np.linspace(-90, 90, 49)
@@ -32,8 +31,8 @@ dates = pd.date_range(
     unit='s'
 )
 
-opath = '/home/buriola/PSG/PSG4Mars/NO_BACKUP/data/OD4Mars/cfg/profiles/'
-ipath = '/home/buriola/PSG/PSG4Mars/NO_BACKUP/data/OD4Mars/cfg/basic_cfg.txt'
+opath = '/home/buriola/Mars/PSG4Mars/NO_BACKUP/data/OD4Mars/cfg/profiles/'
+ipath = '/home/buriola/Mars/PSG4Mars/NO_BACKUP/data/OD4Mars/cfg/basic_cfg.txt'
 
 # Generate profiles
 print("Generating profiles...")
