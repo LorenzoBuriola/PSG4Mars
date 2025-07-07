@@ -56,7 +56,7 @@ def run_psg(cfg_file, out_file = 'temp.txt',
     if local == True:
         url = 'http://localhost:3000/api.php'
         # Check if PSG is running locally
-        if not docker_utils.is_container_running('psg', 'unix:///run/user/1024/docker.sock'):
+        if not docker_utils.is_container_running('psg', 'unix:///run/user/1007/docker.sock'):
             warn('Container psg is not running, please start container')
             return
     else:

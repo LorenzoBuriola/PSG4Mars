@@ -145,14 +145,13 @@ class atmosphere:
         cfg['ATMOSPHERE-ASUNI'] = ','.join(asunit)
         cfg['ATMOSPHERE-NAERO'] = len(aname)
         cfg['ATMOSPHERE-ATYPE'] = ','.join(atype)
-        #other
         cfg['ATMOSPHERE-CONTINUUM'] = ','.join(self.continuum_list)
 
-    def add_gas(self, gname, gabun='1', gunit='scl') -> None:
+    def add_gas(self, gname, gabun=1, gunit='scl') -> None:
         gg = gas(gname, gabun, gunit)
         self.gas_list.append(gg)
     
-    def add_aeros(self, aname, aabun='1', aunit='scl', size = '1', sunit='scl', type='CRISM_Wolff') -> None:
+    def add_aeros(self, aname, aabun=1, aunit='scl', size = 1, sunit='scl', type='CRISM_Wolff') -> None:
         aer = aeros(aname, aabun, aunit, size, sunit, type)
         self.aerosol_list.append(aer)
 
