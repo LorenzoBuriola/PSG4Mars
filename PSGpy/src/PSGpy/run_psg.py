@@ -1,4 +1,9 @@
-# run_psg
+# *******************************************************
+# Lorenzo Buriola - University of Bologna - CNR-ISAC
+# PSGpy - run_psg.py
+# Python wrapper for run PSG within python apps
+# ******************************************************* 
+
 import PSGpy.docker_utils as docker_utils
 from requests import post
 from warnings import warn
@@ -56,12 +61,13 @@ def run_psg(cfg_file, out_file = 'temp.txt',
             return
     else:
         url = 'https://psg.gsfc.nasa.gov/api.php'
-        warn('PSG is not running locally')
-    response = post(url, data=data)                 # 'curl' command
+    # 'curl' command
+    response = post(url, data=data)                 
     if verbose == True:
         print(f'PSG is running at {url}')
         print(f'type = {type}')
         print(f'Input file: {cfg_file}')
         print(f'Output file: {out_file}')
+    # write to output file
     with open(out_file, 'w') as ofile:
-        ofile.write(response.text)                  # write to output file
+        ofile.write(response.text)                  

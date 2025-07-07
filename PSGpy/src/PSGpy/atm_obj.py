@@ -1,8 +1,13 @@
-# atmospheric objects classes
+# *******************************************************
+# Lorenzo Buriola - University of Bologna - CNR-ISAC
+# PSGpy - atm_obj.py
+# Atmospheric classes
+# *******************************************************
 
 import pandas as pd
 from warnings import warn
 
+# Molecular codes
 molecular_metadata = {'H2O': 1, 'CO2': 2, 'O3': 3, 'N2O': 4, 'CO': 5,
                 'CH4': 6, 'O2': 7, 'NO': 8, 'SO2': 9, 'NO2': 10,
                 'NH3': 11, 'HNO3': 12, 'OH': 13, 'HF': 14, 'HCl': 15,
@@ -16,7 +21,14 @@ molecular_metadata = {'H2O': 1, 'CO2': 2, 'O3': 3, 'N2O': 4, 'CO': 5,
                 'CH3F': 51, 'GeH4': 52, 'CS2': 53, 'CH3I': 54, 'NF3': 55}
 
 class gas:
-    def __init__(self, name, abun = '1', unit = 'scl') -> None:
+    def __init__(self, name, abun = 1, unit = 'scl') -> None:
+        """
+        Parameters
+        ----------
+        name: string - name of the gas
+        abun: float - abundance of the gas
+        unit: string - unit of measure ('scl' means fraction of the default profile)
+        """
         self.code = None
         self.abun = abun
         self.unit = unit
@@ -38,7 +50,16 @@ class gas:
             return code
             
 class aeros:
-    def __init__(self, name, abun = '1', unit = 'scl', size = '1', sunit = 'scl', type='CRISM_Wolff') -> None:
+    def __init__(self, name, abun = 1, unit = 'scl', size = 1, sunit = 'scl', type='CRISM_Wolff') -> None:
+        """
+        Parameters
+        ----------
+        name: string - name of the aerosol
+        abun: float - abundance of the aerosol
+        unit: string - unit of measure ('scl' means fraction of the default profile)
+        size: float - size of the particles
+        sunit: string - unit of measure of the size
+        """
         self.name = name
         self.abun = abun
         self.unit = unit
@@ -51,6 +72,13 @@ class aeros:
 
 class atmosphere:
     def __init__(self, glist=[], alist=[], clist=[]) -> None:
+        """
+        Parameters
+        ----------
+        glist: list - list of gasses
+        alist: list - list of aerosol
+        clist: list - list of continua
+        """
         self.gas_list = []
         for gg in glist:
             self.gas_list.append(gas(name=gg))
@@ -133,6 +161,9 @@ class atmosphere:
         self.aerosol_list.remove(aer)
 
     def add_continuum(self, cont):
+        self.continuum_list.append(cont)
+
+    def remove_continuum(self, cont):
         self.continuum_list.remove(cont)
 
     def reset_atmosphere(self) -> None:
