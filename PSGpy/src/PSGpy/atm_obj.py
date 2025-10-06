@@ -30,7 +30,7 @@ class gas:
         unit: string - unit of measure ('scl' means fraction of the default profile)
         """
         self.code = None
-        self.abun = abun
+        self.abun = str(abun)
         self.unit = unit
         if name == 'HDO':
             self.name = 'H2O'
@@ -61,9 +61,9 @@ class aeros:
         sunit: string - unit of measure of the size
         """
         self.name = name
-        self.abun = abun
+        self.abun = str(abun)
         self.unit = unit
-        self.size = size
+        self.size = str(size)
         self.sunit = sunit
         self.type = type
     
