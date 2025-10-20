@@ -6,13 +6,13 @@ import json
 import logging
 import numpy as np
 import pandas as pd
-from src.logger_setup import setup_logger
-from src.generate_profiles import generate_profiles
-from src.generate_p_levels import generate_p_levels
-from src.generate_mean_profile import generate_mean_profiles
-from src.generate_cfg4OD import generate_OD_cfg
-from src.generate_OD import generate_OD
-from src.OD_binning import OD_binning
+from logger_setup import setup_logger
+from generate_profiles import generate_profiles
+from generate_p_levels import generate_p_levels
+from generate_mean_profile import generate_mean_profiles
+from generate_cfg4OD import generate_OD_cfg
+from generate_OD import generate_OD
+from OD_binning import OD_binning
 
 def main():
     print("Running the pipeline for Martian OD computation\n")
