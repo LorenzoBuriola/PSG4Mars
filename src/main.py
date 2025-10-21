@@ -7,12 +7,13 @@ import logging
 import numpy as np
 import pandas as pd
 from logger_setup import setup_logger
-from generate_profiles import generate_profiles
-from generate_p_levels import generate_p_levels
-from generate_mean_profile import generate_mean_profiles
-from generate_cfg4OD import generate_OD_cfg
-from generate_OD import generate_OD
-from OD_binning import OD_binning
+from src.generate_profiles import generate_profiles
+from src.generate_p_levels import generate_p_levels
+from src.generate_mean_profile import generate_mean_profiles
+from src.generate_cfg4OD import generate_OD_cfg
+from src.generate_OD import generate_OD
+from src.OD_binning import OD_binning
+from src.OD_fit import OD_fit
 
 def main():
     print("Running the pipeline for Martian OD computation\n")
@@ -36,15 +37,17 @@ def main():
     logger.setLevel(logging.INFO)
     logger.info(f"Using configuration file: {args.config}")
 
-    # important path 
-    cfg_path = f"{config.get('data_path', defaul_data_path)}cfg/"
-    lyr_path = f"{config.get('data_path', defaul_data_path)}lyr/"
-    lyo_path = f"{config.get('data_path', defaul_data_path)}lyo/"
-    od_path = f"{config.get('data_path', defaul_data_path)}od/"
+    # important path
+    data_path = f"{config.get('data_path', defaul_data_path)}"
+    cfg_path = data_path + 'cfg/'
+    lyr_path = data_path + 'lyr/'
+    lyo_path = data_path + 'lyo/'
+    od_path = data_path + 'od/'
+    coeff_path = data_path + 'coeff/'
 
     flag_profile = config.get('profiles_compute', True)
     flag_p_levels = config.get('pressure_levels_compute', True)
-    flag_mean_profile = config.get('compute_mean_profile', True)
+    flag_mean_profile = config.get('mean_profile_compute', True)
 
     if (flag_profile or flag_p_levels or flag_mean_profile):
         lat_step = 5.625    # from MCD
@@ -93,25 +96,42 @@ def main():
         logger.info("Step 3: skipping mean profile computation")
     logger.info(f"Mean profile saved at '{cfg_path}{config.get('mean_profile_cfg_file', 'mean_profile.txt')}'")
 
-    # Step 4: Generate cfg file for each species
-    logger.info("Step 4: generating cfg files for OD computation")
-    gas_list = config.get('gas_list', ["CO2", "CO", "H2O", "O3", "HCl", "HDO"])
-    generate_OD_cfg(gas_list, cfg_path, f'{cfg_path}OD_gen/')
-    logger.info(f"OD cfg files saved at '{cfg_path}OD_gen/'")
+    flag_od = config.get('od_compute', True)
+    flag_fit = config.get('fot_compute', True)
 
-    # Step 5: Generate OD
-    logger.info("Step 5: generating Optical Depths")
-    ranges = np.arange(config.get('ranges', [90, 3010, 40])[0],
-                        config.get('ranges', [90, 3010, 40])[1]+config.get('ranges', [90, 3010, 40])[2],
-                        config.get('ranges', [90, 3010, 40])[2])
-    temperatures = np.arange(config.get('temperatures', [-60, 60, 10])[0],
-                        config.get('temperatures', [-60, 60, 10])[1]+config.get('temperatures', [-60, 60, 10])[2],
-                        config.get('temperatures', [-60, 60, 10])[2])
-    generate_OD(gas_list, ranges-0.005, temperatures, cfg_path, lyo_path, lyr_path)
+    if (flag_od or flag_fit):
+        gas_list = config.get('gas_list', ["CO2", "CO", "H2O", "O3", "HCl", "HDO"])
+        ranges = np.arange(config.get('ranges', [90, 3010, 40])[0],
+                            config.get('ranges', [90, 3010, 40])[1]+config.get('ranges', [90, 3010, 40])[2],
+                            config.get('ranges', [90, 3010, 40])[2])
+        temperatures = np.arange(config.get('temperatures', [-60, 60, 10])[0],
+                            config.get('temperatures', [-60, 60, 10])[1]+config.get('temperatures', [-60, 60, 10])[2],
+                            config.get('temperatures', [-60, 60, 10])[2])
+    
+    if flag_od:
+        # Step 4: Generate cfg file for each species
+        logger.info("Step 4: generating cfg files for OD computation")
+        
+        generate_OD_cfg(gas_list, cfg_path, f'{cfg_path}OD_gen/')
+        logger.info(f"OD cfg files saved at '{cfg_path}OD_gen/'")
 
-    # Step 6: Binning OD
-    OD_binning(gas_list, ranges-0.005, temperatures, lyo_path, od_path)
+        # Step 5: Generate OD
+        logger.info("Step 5: generating Optical Depths")
+        generate_OD(gas_list, ranges-0.005, temperatures, cfg_path, lyo_path, lyr_path)
 
+        # Step 6: Binning OD
+        OD_binning(gas_list, ranges-0.005, temperatures, lyo_path, od_path)
+    logger.info(f'OD stored at {od_path}')
+
+
+    if flag_fit:
+        logger.info('Step 6: fit OD')
+        OD_fit(gas_list, ranges, 
+               config.get('fit_degree', 3), 
+               config.get('fit_with_errors', False),
+               od_path, coeff_path)
+    logger.info(f'Fit stored at {coeff_path}')
+    print('DONE!')
 
 def load_config(path):
     """Load configuration settings from a JSON file."""

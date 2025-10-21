@@ -1,0 +1,63 @@
+import logging
+import xarray as xr
+import numpy as np
+
+logger = logging.getLogger(__name__)
+
+def weighted_polyfit(y, sigma, T, degree):
+    """Fit a weighted polynomial of given degree to data y(T) with error sigma."""
+    if np.any(~np.isfinite(y)) or np.any(~np.isfinite(sigma)):
+        return np.full(degree + 1, np.nan)
+    try:
+        w = 1 / sigma
+        p = np.polyfit(T, y, deg=degree, w=w)
+        return p  # returns [a3, a2, a1, a0]
+    except Exception:
+        return np.full(degree + 1, np.nan)
+    
+def OD_fit(gas_list, ranges, degree, yerror, od_path, coeff_path):
+    for g_name in gas_list:
+        logger.info(f'Gas: {g_name}')
+        for i in range(len(ranges)-1):
+            logger.info(f'Frequency window: {ranges[i]}-{ranges[i+1]}')
+            ds = xr.open_dataset(f'{od_path}{g_name}/od_{g_name}_freq{ranges[i]}_{ranges[i+1]}.nc')
+            T = ds.coords['DeltaT'].values
+            ods = ds.od
+            errors = ds.error
+            errors = xr.where(errors < 1e-8, 1e-8, errors)
+            ods = xr.where(ods < 1e-8, 1e-8, ods)
+
+            if yerror:
+                # Use xarray.apply_ufunc to vectorize over frequency and altitude
+                coeffs = xr.apply_ufunc(
+                    weighted_polyfit,
+                    ods,
+                    errors,
+                    xr.DataArray(T, dims=['DeltaT']),  # broadcast T as an input
+                    input_core_dims=[['DeltaT'], ['DeltaT'], ['DeltaT']],
+                    output_core_dims=[['degree']],
+                    vectorize=True,
+                    kwargs={'degree': degree},
+                    dask='parallelized',
+                    output_dtypes=[float]
+                )
+            else:
+                pp = ods.polyfit(dim='DeltaT', deg=degree)
+                coeffs = pp.polyfit_coefficients
+
+            # Assign coordinate to degree dimension
+            coeffs = coeffs.assign_coords(degree=np.arange(degree + 1)[::-1])  # Reverse to match np.polyfit order
+
+            fitted = xr.polyval(ds.DeltaT, coeffs)
+            chi = (((ods - fitted)/errors) ** 2).sum(dim='DeltaT')
+            dof = 13 - degree - 1
+            chi = chi / dof
+            ds = xr.Dataset({
+                'polyfit_coefficients': coeffs,
+                'chi2': chi,
+            })
+            ds.to_netcdf(f'{coeff_path}{g_name}/coeff_{degree}_{g_name}_freq{ranges[i]}_{ranges[i+1]}.nc')
+
+    logger.info('Done')
+        
+        
