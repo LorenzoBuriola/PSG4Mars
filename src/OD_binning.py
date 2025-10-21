@@ -2,7 +2,7 @@ import logging
 import numpy as np
 import xarray as xr
 from PSGpy.utils import read_out
-import OD
+import src.OD as OD
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +13,6 @@ def OD_binning(gas_list, ranges, temperatures, lyo_path, od_path):
         logger.info(f'Gas: {g_name}')
         for i in range(len(ranges)-1):
             path = f'{od_path}{g_name}/od_{g_name}_freq{ranges[i]+0.005:.0f}_{ranges[i+1]+0.005:.0f}.nc'
-            #if os.path.exists(path):
-            #    continue
             logger.info(f'Frequency window: {ranges[i]}-{ranges[i+1]}')
             EE = False
             low_freqs = np.arange(ranges[i], ranges[i+1], 1e-2) + 0.005

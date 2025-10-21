@@ -6,7 +6,7 @@ import json
 import logging
 import numpy as np
 import pandas as pd
-from logger_setup import setup_logger
+from src.logger_setup import setup_logger
 from src.generate_profiles import generate_profiles
 from src.generate_p_levels import generate_p_levels
 from src.generate_mean_profile import generate_mean_profiles

@@ -24,6 +24,7 @@ def OD_fit(gas_list, ranges, degree, yerror, od_path, coeff_path):
             T = ds.coords['DeltaT'].values
             ods = ds.od
             errors = ds.error
+            mask0 = ods.max(dim='DeltaT') > 1e-8
             errors = xr.where(errors < 1e-8, 1e-8, errors)
             ods = xr.where(ods < 1e-8, 1e-8, ods)
 
@@ -41,20 +42,19 @@ def OD_fit(gas_list, ranges, degree, yerror, od_path, coeff_path):
                     dask='parallelized',
                     output_dtypes=[float]
                 )
+                # Assign coordinate to degree dimension
+                coeffs = coeffs.assign_coords(degree=np.arange(degree + 1)[::-1])  # Reverse to match np.polyfit order
             else:
                 pp = ods.polyfit(dim='DeltaT', deg=degree)
                 coeffs = pp.polyfit_coefficients
-
-            # Assign coordinate to degree dimension
-            coeffs = coeffs.assign_coords(degree=np.arange(degree + 1)[::-1])  # Reverse to match np.polyfit order
 
             fitted = xr.polyval(ds.DeltaT, coeffs)
             chi = (((ods - fitted)/errors) ** 2).sum(dim='DeltaT')
             dof = 13 - degree - 1
             chi = chi / dof
             ds = xr.Dataset({
-                'polyfit_coefficients': coeffs,
-                'chi2': chi,
+                'coeff': coeffs,
+                'mask0' : mask0,
             })
             ds.to_netcdf(f'{coeff_path}{g_name}/coeff_{degree}_{g_name}_freq{ranges[i]}_{ranges[i+1]}.nc')
 
