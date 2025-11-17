@@ -10,7 +10,7 @@ def setup_logger(log_file):
         level=logging.INFO,  # could be DEBUG, INFO, WARNING, ERROR, CRITICAL
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         handlers=[
-            RotatingFileHandler(log_file, maxBytes=5_000_000, backupCount=3),
-            logging.StreamHandler()  # optional: also print to console
+            RotatingFileHandler(log_file, maxBytes=5_000_000, backupCount=3)
+            #logging.StreamHandler()  # optional: also print to console
         ]
     )

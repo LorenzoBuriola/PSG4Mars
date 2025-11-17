@@ -97,9 +97,10 @@ def main():
     logger.info(f"Mean profile saved at '{cfg_path}{config.get('mean_profile_cfg_file', 'mean_profile.txt')}'")
 
     flag_od = config.get('od_compute', True)
-    flag_fit = config.get('fot_compute', True)
+    flag_bin = config.get('od_bin', True)
+    flag_fit = config.get('od_fit', True)
 
-    if (flag_od or flag_fit):
+    if (flag_od or flag_bin or flag_fit):
         gas_list = config.get('gas_list', ["CO2", "CO", "H2O", "O3", "HCl", "HDO"])
         ranges = np.arange(config.get('ranges', [90, 3010, 40])[0],
                             config.get('ranges', [90, 3010, 40])[1]+config.get('ranges', [90, 3010, 40])[2],
@@ -118,7 +119,9 @@ def main():
         # Step 5: Generate OD
         logger.info("Step 5: generating Optical Depths")
         generate_OD(gas_list, ranges-0.005, temperatures, cfg_path, lyo_path, lyr_path)
+    logger.info(f'OD at high resolution stored ar {lyo_path}')
 
+    if flag_bin:
         # Step 6: Binning OD
         OD_binning(gas_list, ranges-0.005, temperatures, lyo_path, od_path)
     logger.info(f'OD stored at {od_path}')

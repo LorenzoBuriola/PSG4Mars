@@ -22,14 +22,14 @@ def generate_OD(gas_list, ranges, temperatures, cfg_path, lyo_path, lyr_path):
     logger.info('Starting computing ODs\n')
 
     for g_name in gas_list:
-        print(f'Gas: {g_name}')
+        logger.info(f'Gas: {g_name}')
         cfg_dict = cfg.read_cfg(f'{cfg_path}OD_gen/cfg_{g_name}.txt')
         for DT in DTs:
             logger.info(f'Temperature shift: {DT}')
             temp = T_shift(DT, cfg_dict)
             for i in range(len(ranges)-1):
                 logger.info(f'freqs: {ranges[i]}-{ranges[i+1]}')
-                pp = f"{lyo_path}{g_name}/lyo_{g_name}_{DT}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}.txt"
+                #pp = f"{lyo_path}{g_name}/lyo_{g_name}_{DT}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}.txt"
                 #if os.path.exists(pp):
                 #    continue
                 temp['GENERATOR-RANGE1'] = "{:.4f}".format(ranges[i])
