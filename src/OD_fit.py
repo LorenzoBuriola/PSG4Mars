@@ -15,7 +15,7 @@ def weighted_polyfit(y, sigma, T, degree):
     except Exception:
         return np.full(degree + 1, np.nan)
     
-def OD_fit(gas_list, ranges, degree, yerror, od_path, coeff_path):
+def OD_fit(gas_list, ranges, degree, od_path, coeff_path):
     for g_name in gas_list:
         logger.info(f'Gas: {g_name}')
         for i in range(len(ranges)-1):
@@ -23,12 +23,51 @@ def OD_fit(gas_list, ranges, degree, yerror, od_path, coeff_path):
             ds = xr.open_dataset(f'{od_path}{g_name}/od_{g_name}_freq{ranges[i]}_{ranges[i+1]}.nc')
             T = ds.coords['DeltaT'].values
             ods = ds.od
-            errors = ds.error
+#            errors = ds.error
+ #           errors = xr.where(errors < 1e-8, 1e-8, errors)
             mask0 = ods.max(dim='DeltaT') > 1e-8
-            errors = xr.where(errors < 1e-8, 1e-8, errors)
-            ods = xr.where(ods < 1e-8, 1e-8, ods)
+            ods = xr.where(mask0, ods, 0.)
+            maskMAX = ods <= 690.7
+            
+            ods = ods.where(maskMAX, drop=False)
+            #check if there are at least four valid points to fit, if not set to nan
+            valid_points = maskMAX.sum(dim='DeltaT')
+            ods = ods.where(valid_points >= degree + 1, drop=False)
+            #where nan set to 690.7 to avoid issues in weighted fit
+           
+            name_out = f'{coeff_path}{g_name}/coeff_{degree}_{g_name}_freq{ranges[i]}_{ranges[i+1]}.nc'
+            pp = ods.polyfit(dim='DeltaT', deg=degree)
+            coeffs = pp.polyfit_coefficients
+            mask = coeffs.isnull().any("degree")   # where polyfit failed
+            custom = np.array([0.0, 0.0, 0.0, 690.7])  # your replacement coefficients
+            custom_da = xr.DataArray(
+                    custom,
+                    dims=["degree"],
+                    coords={"degree": coeffs["degree"]},
+                ).broadcast_like(coeffs)
+            coeffs = xr.where(mask, custom_da, coeffs)
+                
 
-            if yerror:
+#            fitted = xr.polyval(ds.DeltaT, coeffs)
+#            neg_mask = (fitted < 0).any(dim="DeltaT")
+#            count_negative_points = neg_mask.sum()
+#           tot = neg_mask.size
+#           logger.info(f'NNeg_points = {count_negative_points.item()}/{tot}')
+#            chi = (((ods - fitted)/errors) ** 2).sum(dim='DeltaT')
+#            dof = 13 - degree - 1
+#            chi = chi / dof
+            ds = xr.Dataset({
+                'coeff': coeffs,
+                'mask0': mask0
+            })
+            ds.to_netcdf(name_out)
+
+    logger.info('Done')
+        
+        
+    """
+    if yerror:
+                name_out = f'{coeff_path}{g_name}/coeff_{degree}_yer_{g_name}_freq{ranges[i]}_{ranges[i+1]}.nc'
                 # Use xarray.apply_ufunc to vectorize over frequency and altitude
                 coeffs = xr.apply_ufunc(
                     weighted_polyfit,
@@ -45,19 +84,4 @@ def OD_fit(gas_list, ranges, degree, yerror, od_path, coeff_path):
                 # Assign coordinate to degree dimension
                 coeffs = coeffs.assign_coords(degree=np.arange(degree + 1)[::-1])  # Reverse to match np.polyfit order
             else:
-                pp = ods.polyfit(dim='DeltaT', deg=degree)
-                coeffs = pp.polyfit_coefficients
-
-            fitted = xr.polyval(ds.DeltaT, coeffs)
-            chi = (((ods - fitted)/errors) ** 2).sum(dim='DeltaT')
-            dof = 13 - degree - 1
-            chi = chi / dof
-            ds = xr.Dataset({
-                'coeff': coeffs,
-                'mask0' : mask0,
-            })
-            ds.to_netcdf(f'{coeff_path}{g_name}/coeff_{degree}_{g_name}_freq{ranges[i]}_{ranges[i+1]}.nc')
-
-    logger.info('Done')
-        
-        
+"""

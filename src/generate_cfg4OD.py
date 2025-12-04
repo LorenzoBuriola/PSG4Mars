@@ -2,8 +2,8 @@ import numpy as np
 import PSGpy.cfg as cfg
 import PSGpy.atm_obj as atm
 
-def generate_OD_cfg(gas_list, ipath, opath, res = 1e-4):
-    cfg_dict = cfg.read_cfg(f'{ipath}mean_cfg.txt')
+def generate_OD_cfg(gas_list, ifile, opath, res = 1e-4):
+    cfg_dict = cfg.read_cfg(ifile)
     for g_name in gas_list:
         temp = cfg_dict.copy()
         atmos = atm.atmosphere()

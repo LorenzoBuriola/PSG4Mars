@@ -1,8 +1,58 @@
-# OD compiutation and binning
-
+import logging
 import numpy as np
-import pandas as pd
+import xarray as xr
+from PSGpy.utils import read_out
 from scipy.stats import binned_statistic
+
+logger = logging.getLogger(__name__)
+
+def OD_calc(gas_list, ranges, temperatures, lyo_path, od_path):
+    tab = read_out(f'{lyo_path}CO2/lyo_CO2_0_freq90_130.txt')
+    hh = tab.columns[1:-1].to_numpy(dtype='float64')
+    for g_name in gas_list:
+        logger.info(f'Gas: {g_name}')
+        for i in range(len(ranges)-1):
+            path = f'{od_path}{g_name}/od_{g_name}_freq{ranges[i]+0.005:.0f}_{ranges[i+1]+0.005:.0f}.nc'
+            logger.info(f'Frequency window: {ranges[i]}-{ranges[i+1]}')
+            EE = False
+            low_freqs = np.arange(ranges[i], ranges[i+1], 1e-2) + 0.005
+            list_of_od = []
+            list_of_mask = []
+            for DT in temperatures:
+                logger.info(f'Temperature shift: {DT}')
+                try:
+                    tab = read_out(f'{lyo_path}{g_name}/lyo_{g_name}_{DT}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}.txt')
+                    tab = tab[:400000] # Limit to the first 400000 rows
+                    tab = OD_compute(tab)
+                    tab, mask = OD_binning(tab, 4000)
+                    list_of_od.append(tab)
+                    list_of_mask.append(mask)
+                except ValueError as ERROR:
+                    logger.info("An exception occurred:", type(ERROR).__name__, "–", ERROR)
+                    EE = True
+            if EE:
+                continue
+            aa = np.stack(list_of_od, axis=-1)
+            mm = np.stack(list_of_mask, axis=-1)
+
+            
+            aa = xr.DataArray(data=aa, dims=['freq', 'altitude', 'DeltaT'], coords=dict(
+                    freq = low_freqs,
+                    altitude = hh,
+                    DeltaT = temperatures
+                ))
+            mm = xr.DataArray(data=mm, dims=['freq', 'altitude', 'DeltaT'], coords=dict(
+                    freq = low_freqs,
+                    altitude = hh,
+                    DeltaT = temperatures
+                ))
+            ds = xr.Dataset({
+                'od': aa,
+                'mask': mm
+            })
+            ds.to_netcdf(path)
+
+    logger.info('All done!')
 
 def OD_compute(data):
     altitude = data.columns[1:].to_numpy(dtype='float64')
@@ -14,33 +64,40 @@ def OD_compute(data):
     df_out.columns = names
     return df_out
     
-def OD_binning(high_res, f_low):
+def OD_binning(high_res, n_bins):
     #Sort values by frequency not to mess up the binning
     high_res.sort_values(by='freq',inplace=True)
-    #Find the frequency resolution and the bins edges
-    dw = f_low[1]-f_low[0]
-    edges = (f_low-dw/2).tolist()
-    edges.append(f_low[-1]+dw/2)
     #Get the high frequency and optical depth values
     f_high = high_res.freq.to_numpy()
     ods = high_res.to_numpy()[:,1:].T
     #Compute transmittance and cumulative transmittance
     trn = np.exp(-ods)
     cum_trn = np.cumprod(trn[::-1,:], axis=0)[::-1,:]
-    binned,_,_ = binned_statistic(x=f_high,values=cum_trn,statistic='mean',bins=edges)
-    sec_binned,_,_ = binned_statistic(x=f_high,values=ods,statistic='mean',bins=edges)
+    cum_binned,_,_ = binned_statistic(x=f_high,values=cum_trn,statistic='mean',bins=n_bins)
+    binned,_,_ = binned_statistic(x=f_high,values=trn,statistic='mean',bins=n_bins)
     
-    od_bin = -sec_binned
-    mask = (binned[:-1] != 0) & (binned[1:] != 0)
-    np.divide(binned[:-1], binned[1:], out=od_bin[:-1], where=mask)
-    np.log(od_bin[:-1], out=od_bin[:-1], where=mask)
-    od_bin[:-1] = -od_bin[:-1]  # Convert transmittance to optical depth
-    od_bin[-1] = -np.log(binned[-1]) 
+    binned = np.clip(binned, 1e-300, 1.0)
+    od_bin = np.log(binned)
 
+    mask = (cum_binned[:-1] != 0) & (cum_binned[1:] != 0)
+    np.divide(cum_binned[:-1], cum_binned[1:], out=od_bin[:-1], where=mask)
+    np.log(od_bin[:-1], out=od_bin[:-1], where=mask)
+    od_bin = -od_bin
+
+    new_row = np.ones((1, mask.shape[1]), dtype=bool)
+    mask = np.vstack((mask, new_row))
+    return od_bin.T, mask.T
+
+"""
     #Compute the error
-    pr_error,_,_ = binned_statistic(x=f_high,values=cum_trn,statistic='std',bins=edges)
-    sec_error,_,_ = binned_statistic(x=f_high,values=ods,statistic='std',bins=edges)
-    error = sec_error
+    NN = np.sqrt(f_high.size/n_bins)
+    pr_error,_,_ = binned_statistic(x=f_high,values=trn,statistic='std',bins=n_bins)
+    pr_error = pr_error/NN
+    #sec_error,_,_ = binned_statistic(x=f_high,values=ods,statistic='std',bins=n_bins)
+    #error = sec_error
+    error = pr_error/binned
+
+
 
     term1 = np.empty_like(error[:-1])
     term2 = np.empty_like(error[:-1])
@@ -50,39 +107,4 @@ def OD_binning(high_res, f_low):
     np.square(term2, out=term2)
     np.sqrt(term1 + term2, out=error[:-1], where=mask)
     error[-1] = pr_error[-1]/binned[-1]
-
-    return od_bin.T, error.T
-
-"""
-def vez_bin(high_res, low_res):
-    low_res.sort_values(by='freq',inplace=True)
-    high_res.sort_values(by='freq',inplace=True)
-    f_low = low_res.freq.to_numpy()
-    dw = f_low[1]-f_low[0]
-    f_high = high_res.freq.to_numpy()
-    ods = high_res.to_numpy()[:,1:].T
-    trn = np.exp(-ods)
-    cum_trn = np.cumprod(trn[::-1,:], axis=0)
-
-    ll = ods.shape[0]
-    vv = len(f_low)
-    c_tr = cum_trn[::-1,:]
-
-    tt = np.ones((ll+1, vv))
-    odt = np.zeros((ll, vv))
-
-    for i in reversed(range(ll)):
-        for j in range(vv):
-            ind = np.nonzero(np.abs(f_high-f_low[j])<=dw/2)
-            buff = np.mean(ods[i, ind])
-            buf = np.mean(c_tr[i,ind])/tt[i+1,j]
-            if buf > 0:
-                odt[i,j] = -np.log(buf)
-            else:
-                odt[i,j] = 0.7*buff
-            tt[i,j] = np.exp(-odt[i,j])*tt[i+1,j]
-
-    binned_df = pd.DataFrame(np.concatenate((f_low.reshape((-1,1)), odt.T), axis = 1), columns=low_res.columns)
-
-    return binned_df
 """

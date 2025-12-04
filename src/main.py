@@ -12,12 +12,12 @@ from src.generate_p_levels import generate_p_levels
 from src.generate_mean_profile import generate_mean_profiles
 from src.generate_cfg4OD import generate_OD_cfg
 from src.generate_OD import generate_OD
-from src.OD_binning import OD_binning
+from src.OD import OD_calc
 from src.OD_fit import OD_fit
 
 def main():
     print("Running the pipeline for Martian OD computation\n")
-    defaul_data_path = '/home/buriola/PSG/PSG4Mars/NO_BACKUP/data/'
+    defaul_data_path = '/home/buriola/OD4Mars/NO_BACKUP/data/'
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(description="My pipeline")
@@ -113,7 +113,7 @@ def main():
         # Step 4: Generate cfg file for each species
         logger.info("Step 4: generating cfg files for OD computation")
         
-        generate_OD_cfg(gas_list, cfg_path, f'{cfg_path}OD_gen/')
+        generate_OD_cfg(gas_list, cfg_path+'mean_profile.txt', f'{cfg_path}OD_gen/')
         logger.info(f"OD cfg files saved at '{cfg_path}OD_gen/'")
 
         # Step 5: Generate OD
@@ -123,15 +123,14 @@ def main():
 
     if flag_bin:
         # Step 6: Binning OD
-        OD_binning(gas_list, ranges-0.005, temperatures, lyo_path, od_path)
+        OD_calc(gas_list, ranges-0.005, temperatures, lyo_path, od_path)
     logger.info(f'OD stored at {od_path}')
 
 
     if flag_fit:
         logger.info('Step 6: fit OD')
         OD_fit(gas_list, ranges, 
-               config.get('fit_degree', 3), 
-               config.get('fit_with_errors', False),
+               config.get('fit_degree', 3),
                od_path, coeff_path)
     logger.info(f'Fit stored at {coeff_path}')
     print('DONE!')
