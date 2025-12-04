@@ -14,12 +14,14 @@
     "mean_profile_file" : "mean_profile.csv",
     "mean_profile_cfg_file" : "mean_profile.txt",
 
-    "od_compute": true,
+    "od_compute": false,
     "gas_list" : ["CO2", "CO", "H2O", "O3", "HCl", "HDO"],
     "ranges" : [90, 3010, 40],
     "temperatures" : [-60, 60, 10],
 
-    "fit_compute" : true,
+    "od_bin" : true,
+
+    "od_fit" : true,
     "fit_degree" : 3,
     "fit_with_errors" : false
 }   
