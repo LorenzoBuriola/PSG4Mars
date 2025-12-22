@@ -39,7 +39,8 @@ def OD_fit(gas_list, ranges, degree, od_path, coeff_path):
             pp = ods.polyfit(dim='DeltaT', deg=degree)
             coeffs = pp.polyfit_coefficients
             mask = coeffs.isnull().any("degree")   # where polyfit failed
-            custom = np.array([0.0, 0.0, 0.0, 690.7])  # your replacement coefficients
+            custom = np.zeros((degree+1))  # your replacement coefficients
+            custom[-1] = 690.7  # constant term set to 690.7
             custom_da = xr.DataArray(
                     custom,
                     dims=["degree"],

@@ -14,6 +14,7 @@ from src.generate_cfg4OD import generate_OD_cfg
 from src.generate_OD import generate_OD
 from src.OD import OD_calc
 from src.OD_fit import OD_fit
+from src.input4pack import input4pack, run_packoneband
 
 def main():
     print("Running the pipeline for Martian OD computation\n")
@@ -44,6 +45,7 @@ def main():
     lyo_path = data_path + 'lyo/'
     od_path = data_path + 'od/'
     coeff_path = data_path + 'coeff/'
+    sforum_path = data_path + 'sforum/'
 
     flag_profile = config.get('profiles_compute', True)
     flag_p_levels = config.get('pressure_levels_compute', True)
@@ -99,8 +101,9 @@ def main():
     flag_od = config.get('od_compute', True)
     flag_bin = config.get('od_bin', True)
     flag_fit = config.get('od_fit', True)
+    flag_sforum = config.get('for_sforum', True)
 
-    if (flag_od or flag_bin or flag_fit):
+    if (flag_od or flag_bin or flag_fit or flag_sforum):
         gas_list = config.get('gas_list', ["CO2", "CO", "H2O", "O3", "HCl", "HDO"])
         ranges = np.arange(config.get('ranges', [90, 3010, 40])[0],
                             config.get('ranges', [90, 3010, 40])[1]+config.get('ranges', [90, 3010, 40])[2],
@@ -108,6 +111,7 @@ def main():
         temperatures = np.arange(config.get('temperatures', [-60, 60, 10])[0],
                             config.get('temperatures', [-60, 60, 10])[1]+config.get('temperatures', [-60, 60, 10])[2],
                             config.get('temperatures', [-60, 60, 10])[2])
+        degree = config.get('fit_degree', 3)
     
     if flag_od:
         # Step 4: Generate cfg file for each species
@@ -130,9 +134,20 @@ def main():
     if flag_fit:
         logger.info('Step 6: fit OD')
         OD_fit(gas_list, ranges, 
-               config.get('fit_degree', 3),
+               degree,
                od_path, coeff_path)
     logger.info(f'Fit stored at {coeff_path}')
+
+    if flag_sforum:
+        logger.info('Step 7: prepare input for sFORUM')
+        input4pack(gas_list,
+                   ranges,
+                   degree,
+                   coeff_path,
+                   sforum_path+'to_pack/')
+        logger.info(f'run packoneband fortran executable')
+        run_packoneband('/home/buriola/OD4Mars/src/.', str(degree))
+
     print('DONE!')
 
 def load_config(path):
