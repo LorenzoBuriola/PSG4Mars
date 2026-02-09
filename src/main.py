@@ -6,6 +6,7 @@ import json
 import logging
 import numpy as np
 import pandas as pd
+from datetime import datetime
 from src.logger_setup import setup_logger
 from src.generate_profiles import generate_profiles
 from src.generate_p_levels import generate_p_levels
@@ -33,7 +34,8 @@ def main():
     config = load_config(args.config)
 
     # Setup logger
-    setup_logger(config['log_file'])
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    setup_logger(f'/home/buriola/OD4Mars/NO_BACKUP/log/OD4Mars_{timestamp}.log')
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     logger.info(f"Using configuration file: {args.config}")
@@ -147,7 +149,7 @@ def main():
                    coeff_path,
                    sforum_path+'to_pack/')
         logger.info(f'run packoneband fortran executable')
-        run_packoneband('/home/buriola/OD4Mars/src/.', str(degree))
+        run_packoneband('/home/buriola/OD4Mars/src/.', str(degree), outfile=config.get('pack_oneband_file', 'pack_oneband_output.txt'))
 
     print('DONE!')
 

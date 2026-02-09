@@ -39,11 +39,16 @@ def input4pack(gas_list, ranges, degree, coeff_path, out_path):
                 for kk in reversed(range(degree+1)):
                     fid1.write(np.array(cind[ind[jj],jj,kk], dtype=np.float32).tobytes())
 
-def run_packoneband(exe_path, degree):
-    cmd = ['./pack_oneband.out', degree]
-    result = subprocess.run(cmd, cwd=exe_path,
-                            capture_output=True, text=True)
+def run_packoneband(exe_path, degree, outfile):
+    cmd = ['./pack_oneband.out', str(degree)]
+    with open(outfile, 'w') as f:
+        result = subprocess.run(cmd, 
+                                cwd=exe_path,
+                                stdout=f,
+                                stderr=subprocess.PIPE,
+                                text=True
+                            )
     if result.returncode != 0:
         logger.error(f'Error running packoneband: {result.stderr}')
     else:
-        logger.info(f'packoneband output: {result.stdout}')
+        logger.info(f'packoneband finished successfully. Output in {outfile}')
