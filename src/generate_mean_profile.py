@@ -9,7 +9,7 @@ from PSGpy.utils import name_file
 
 logger = logging.getLogger(__name__)
 
-def generate_mean_profiles(latitudes, longitudes, dates, ipath, p_filename, csv_ofile, cfg_ofile):
+def generate_mean_profiles(latitudes, longitudes, dates, ipath, p_filename, csv_ofile, cfg_ofile, comp_alt):
     dates_list = dates.strftime('%Y/%m/%d %H:%M').to_list()
     tt = []
     h2o = []
@@ -54,33 +54,34 @@ def generate_mean_profiles(latitudes, longitudes, dates, ipath, p_filename, csv_
     stdO3 = np.nanstd(o3, axis=0)[::-1]
 
     p_edges = p_edges[::-1]  # Reverse the order to compute altitude correctly
-    #Altitude
-    logger.info('Computing altitude profile from pressure edges and mean temperature...')
-    W_air = 43.65   #Weight [g/mol]
-    R = 8314.46261815324  #Universal gas constant [mJ/(mol*K)]
-    g_surf = 3.73     #Gravity [m/s^2]
-    R_surf = 6779.8/2*1000  #Mars radius [m]
 
-    hh = np.zeros_like(p_edges)
-
-    logger.debug(f'Altitude at level 1: {hh[0]/1000} km')
-
-    for i in range(len(p_edges)-1):
-        g = g_surf*((hh[i]+R_surf)/ R_surf)**2
-        H = R * meanT[i] / (W_air * g)  #Scale height [m]
-        hh[i+1] = hh[i] + H * np.log(p_edges[i] / p_edges[i+1])  #Altitude [m]
-        logger.debug(f'Altitude at level {i+2}: {hh[i+1]/1000} km')
+    if comp_alt:
+        #Altitude
+        logger.info('Computing altitude profile from pressure edges and mean temperature...')
+        W_air = 43.65   #Weight [g/mol]
+        R = 8314.46261815324  #Universal gas constant [mJ/(mol*K)]
+        g_surf = 3.73     #Gravity [m/s^2]
+        R_surf = 6779.8/2*1000  #Mars radius [m]
+        hh = np.zeros_like(p_edges)
+        logger.debug(f'Altitude at level 1: {hh[0]/1000} km')
+        for i in range(len(p_edges)-1):
+            g = g_surf*((hh[i]+R_surf)/ R_surf)**2
+            H = R * meanT[i] / (W_air * g)  #Scale height [m]
+            hh[i+1] = hh[i] + H * np.log(p_edges[i] / p_edges[i+1])  #Altitude [m]
+            logger.debug(f'Altitude at level {i+2}: {hh[i+1]/1000} km')
 
     df_mean = pd.DataFrame({
         'Pressure' : p_edges,
         'Temperature' : meanT,
-        'Altitude' : hh/1000,  # Convert to km
         'CO2' : meanCO2,
         'CO' : meanCO,
         'H2O' : meanH2O,
         'O3' : meanO3
     })
     df_mean['HCl'] = 1e-9
+
+    if comp_alt:
+        df_mean.insert(2, 'Altitude', hh / 1000)
 
     df_std = pd.DataFrame({
         'Pressure' : p_edges,

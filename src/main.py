@@ -90,10 +90,11 @@ def main():
     # Step 3: Compute mean profile
     if flag_mean_profile:
         mean_file = f'{cfg_path}{config.get('mean_profile_cfg_file', 'mean_profile.txt')}'
+        flag_altitude = config.get('mean_profile_compute_altitude', True)
         logger.info("Step 3: computing mean profile")
         generate_mean_profiles(latitudes, longitudes, dates, f'{cfg_path}profiles/', p_filename,
                                            csv_ofile = config.get('mean_profile_file', 'mean_profile.csv'),
-                                           cfg_ofile = mean_file)
+                                           cfg_ofile = mean_file, comp_alt = flag_altitude)
     else:
         logger.info("Step 3: skipping mean profile computation")
     logger.info(f"Mean profile saved at '{cfg_path}{config.get('mean_profile_cfg_file', 'mean_profile.txt')}'")

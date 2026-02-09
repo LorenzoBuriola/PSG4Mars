@@ -12,10 +12,10 @@ def generate_OD_cfg(gas_list, ifile, opath, res = 1e-4):
         atmos.continuum_list = ['Layering', 'Contributions']
         atmos.edit_cfg(temp)
         if g_name == 'H2O':
-            temp['ATMOSPHERE-GAS'] = 'H2O,H2O,H2O,H2O'
-            temp['ATMOSPHERE-UNIT'] = 'scl,scl,scl,scl'
-            temp['ATMOSPHERE-ABUN'] = '1,1,1,1'
-            temp['ATMOSPHERE-TYPE'] = 'HIT[1:1],HIT[1:2],HIT[1:3],HIT[1:5]'
-            temp['ATMOSPHERE-NGAS'] = 4
+            temp['ATMOSPHERE-GAS'] = 'H2O,H2O,H2O'
+            temp['ATMOSPHERE-UNIT'] = 'scl,scl,scl'
+            temp['ATMOSPHERE-ABUN'] = '1,1,1'
+            temp['ATMOSPHERE-TYPE'] = 'HIT[1:1],HIT[1:2],HIT[1:3]'
+            temp['ATMOSPHERE-NGAS'] = 3
         temp['GENERATOR-RESOLUTION'] = res
         cfg.dict_to_cfg(cfg_dict=temp,file_path=f'{opath}cfg_{g_name}.txt')

@@ -64,7 +64,7 @@ program pack
     open(7,file='/home/buriola/OD4Mars/NO_BACKUP/data/sforum/hc',status='unknown')
     write(7,'(I10)') nnquad
     do layer=1,nlayermax
-        write(7,'(I6, (I9))') npn(layer),(squad(is,layer),equad(is,layer),is=1,nspecies)
+        write(7,'(I6, (12I9))') npn(layer),(squad(is,layer),equad(is,layer),is=1,nspecies)
     enddo
     close(7)
     if(nnquad.gt.0) then

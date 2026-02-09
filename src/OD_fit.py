@@ -49,7 +49,13 @@ def OD_fit(gas_list, ranges, degree, od_path, coeff_path):
             coeffs = xr.where(mask, custom_da, coeffs)
                 
 
-#            fitted = xr.polyval(ds.DeltaT, coeffs)
+            fitted = xr.polyval(ds.DeltaT, coeffs)
+            ss_res = ((ods - fitted) ** 2).sum(dim='DeltaT')
+            ss_tot = ((ods - ods.mean(dim='DeltaT')) ** 2).sum(dim='DeltaT')
+            r_squared = 1 - ss_res / ss_tot
+
+            dof = valid_points - (degree + 1)
+            adjused_r_squared = 1 - (1 - r_squared) * (valid_points - 1) / dof
 #            neg_mask = (fitted < 0).any(dim="DeltaT")
 #            count_negative_points = neg_mask.sum()
 #           tot = neg_mask.size
@@ -57,9 +63,11 @@ def OD_fit(gas_list, ranges, degree, od_path, coeff_path):
 #            chi = (((ods - fitted)/errors) ** 2).sum(dim='DeltaT')
 #            dof = 13 - degree - 1
 #            chi = chi / dof
+
             ds = xr.Dataset({
                 'coeff': coeffs,
-                'mask0': mask0
+                'mask0': mask0,
+                'adj_r_squared': adjused_r_squared,
             })
             ds.to_netcdf(name_out)
 

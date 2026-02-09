@@ -168,5 +168,4 @@ cython_debug/
 #vscode
 .vscode/
 
-#nohup
-nohup.out
+*.out
