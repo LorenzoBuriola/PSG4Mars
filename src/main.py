@@ -1,8 +1,7 @@
-#This is the main of the pipeline to compute Martian gas Optical Depths
+# This is the main of the pipeline to compute Martian gas Optical Depths
 # Lorenzo Buriola - University of Bologna, CNR-ISAC
 
 import argparse
-import tomllib
 import logging
 import sys
 import time
@@ -10,6 +9,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
+from dataclasses import dataclass
 from src.logger_setup import setup_logger
 from src.generate_profiles import generate_profiles
 from src.generate_p_levels import generate_p_levels
@@ -19,9 +19,11 @@ from src.generate_OD import generate_OD
 from src.OD import OD_calc
 from src.OD_fit import OD_fit
 from src.input4pack import input4pack, run_packoneband
-
+from src.prepare_directories import prepare_directories
+from src.read_config import read_config
 
 def parse_args():
+    # Parse command-line arguments
     parser = argparse.ArgumentParser(description="My pipeline")
     parser.add_argument(
         "-c", "--config",
@@ -36,15 +38,19 @@ def parse_args():
     )
     return parser.parse_args()
 
-def load_config(path):
-    """Load configuration settings from a JSON file."""
-    with open(path, "rb") as file:
-        config = tomllib.load(file)
-    return config
+def read_range(var):
+    start, end, step = var
+    return np.arange(start, end+step/2, step)
+
+@dataclass
+class Grid:
+    latitudes: np.ndarray
+    longitudes: np.ndarray
+    dates: pd.DatetimeIndex
 
 def main(args):
     # --- Load config file ---
-    config = load_config(args.config)
+    config = read_config(args.config)
 
     # Setup logger
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -68,17 +74,13 @@ def main(args):
 
     # important path
     data_path = config['data_path']
+    prepare_directories(config)
     cfg_path = data_path + 'cfg/'
     lyr_path = data_path + 'lyr/'
     lyo_path = data_path + 'lyo/'
     od_path = data_path + 'od/'
     coeff_path = data_path + 'coeff/'
     s4Mars_path = data_path + 's4Mars/'
-    for path in [cfg_path, lyr_path, lyo_path, od_path, coeff_path, s4Mars_path]:
-        Path(path).mkdir(parents=True, exist_ok=True)
-
-    #output path
-    Path('/home/buriola/OD4Mars/output/').mkdir(exist_ok=True)
 
     flag_profile = config['profiles']['flag']
     flag_p_levels = config['pressure_levels']['flag']
@@ -101,16 +103,14 @@ def main(args):
             periods=periods,
             unit='s'
         )
+        grid = Grid(latitudes=latitudes, longitudes=longitudes, dates=dates)
         profile_path = config['profiles']['path']
         p_filename = config['pressure_levels']['path']
 
     # Step 1: Generate profiles
     if flag_profile:
         logger.info("Generating profiles")
-        Path(profile_path).mkdir(exist_ok=True)
-        generate_profiles(opath = profile_path, dates = dates,
-                          latitudes = latitudes,
-                          longitudes = longitudes)
+        generate_profiles(opath = profile_path, grid = grid)
     else:
         logger.info("Skipping profile generation")
     logger.info(f"Profiles at '{cfg_path}profiles/'")
@@ -118,8 +118,7 @@ def main(args):
     # Step 2: Compute pressure levels 
     if flag_p_levels:
         logger.info("Computing pressure levels")
-        generate_p_levels(latitudes, longitudes, dates, profile_path,
-                          ofile = p_filename)
+        generate_p_levels(grid, p_filename, ofile = p_filename)
     else:
         logger.info("Skipping pressure level computation")
     logger.info(f"Pressure levels saved at '{config['pressure_levels']['path']}'")
@@ -128,7 +127,7 @@ def main(args):
     csv_mean = config['mean_profile']['path_csv']
     if flag_mean_profile:
         logger.info("Computing mean profile")
-        df_mean = generate_mean_profiles(latitudes, longitudes, dates, profile_path, p_filename, csv_ofile = csv_mean)
+        df_mean = generate_mean_profiles(grid, profile_path, p_filename, csv_ofile = csv_mean)
     else:
         logger.info("Skipping mean profile computation")
         try:
@@ -151,40 +150,36 @@ def main(args):
     flag_fit = config['od-fit']['flag']
     flag_s4Mars = config['s4Mars']['flag']
     gas_list = config['gas_list']
-    temperatures_cfg = config['temperatures']
-    start, end, step = temperatures_cfg
-    temperatures = np.arange(start, end+step/2, step)
+    temperatures = read_range(config['temperatures'])
+    range_offset = 0.005
+    # This offset is applied to facilitate the binning of the OD at lower resolution.
+    # Each bin is now centered at the bin center, rather than at the bin edge.
 
     if flag_od:
         high_res = config['od-lyo']['high_res']
         logger.info(f'high resolution: {high_res:.0e} cm-1')
-
-        ranges_cfg = config['od-lyo']['ranges']
-        start, end, step = ranges_cfg
-        ranges = np.arange(start, end+step/2, step)
+        ranges = read_range(config['od-lyo']['ranges'])
 
         # Step 4: Generate cfg file for each species
         logger.info("Generating cfg files for OD computation")
-        Path(f'{cfg_path}OD_gen/').mkdir(exist_ok=True)
         generate_OD_cfg(gas_list, mean_file, f'{cfg_path}OD_gen/')
         logger.info(f"OD cfg files saved at '{cfg_path}OD_gen/'")
 
         # Step 5: Generate OD
-        for g_name in gas_list:
-            Path(f'{lyo_path}{g_name}/').mkdir(parents=True, exist_ok=True)
-            Path(f'{lyr_path}{g_name}/').mkdir(parents=True, exist_ok=True)
         logger.info("Generating Optical Depths")
         t0 = time.time()
-        generate_OD(gas_list, ranges-0.005, high_res, temperatures, cfg_path, lyo_path, lyr_path)
+        if high_res == 1e-2:
+            rranges = ranges
+        else:
+            rranges = ranges-range_offset
+        generate_OD(gas_list, rranges, high_res, temperatures, cfg_path, lyo_path, lyr_path)
         logger.info(f"OD generation took {(time.time()-t0)/3600:.2f} h")
     else:
         logger.info("Skipping Optical Depth Generation")
     logger.info(f'OD at high resolution stored ar {lyo_path}')
 
     if (flag_bin or flag_fit or flag_s4Mars):
-        ranges_bin_cfg = config['od-bin']['ranges']
-        start, end, step = ranges_bin_cfg
-        ranges_bin = np.arange(start, end+step/2, step)
+        ranges_bin = read_range(config['od-bin']['ranges'])
         low_res = config['od-bin']['low_res']
         logger.info(f'low resolution: {low_res:.0e} cm-1')
         cumulative = config['od-bin']['cumulative']
@@ -201,7 +196,7 @@ def main(args):
         else: 
             logger.info(f'OD binning from 1e-4 to {low_res:.0e} cm-1')
         logger.info(f'Binning OD with cumulative method: {cumulative}')
-        OD_calc(gas_list, ranges_bin-0.005, temperatures, lyo_path, od_path, low_res, cumulative)
+        OD_calc(gas_list, ranges_bin - range_offset, temperatures, lyo_path, od_path, low_res, cumulative)
     logger.info(f'OD stored at {od_path}')
 
     if flag_fit:
@@ -219,7 +214,6 @@ def main(args):
         logger.info(f'Using fit with degree {degree} and low resolution {low_res:.0e} cm-1')
         name_database = config['s4Mars']['name_od_database']
         outdir = Path(s4Mars_path+name_database+'/to_pack/')
-        outdir.mkdir(parents=True, exist_ok=True)
         input4pack(gas_list,
                    ranges_bin,
                    degree,
@@ -229,7 +223,6 @@ def main(args):
         run_packoneband('/home/buriola/OD4Mars/src/.', name_database, str(degree), cumulative, outfile=config['s4Mars']['pack_oneband_out'])
     else:
         logger.info("Skipping input for s4Mars preparation")
-
     logger.info('Program OD4Mars executed!')
 
 if __name__ == "__main__":
