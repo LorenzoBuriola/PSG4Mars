@@ -28,17 +28,15 @@ def prepare_directories(config) -> None:
     # Create the directories if they don't exist
     for path in [cfg_path, lyr_path, lyo_path, od_path, coeff_path, s4Mars_path]:
         Path(path).mkdir(parents=True, exist_ok=True)
-        logger.info(f"Directory created or already exists: {path}")
+        logger.debug(f"Directory created or already exists: {path}")
 
     # Create subdirectories for each gas in the lyr and lyo directories
     gas_list = config['gas_list']
-    for gas in gas_list:
-        gas_lyr_path = os.path.join(lyr_path, gas)
-        Path(gas_lyr_path).mkdir(parents=True, exist_ok=True)
-        logger.info(f"Subdirectory created or already exists for gas '{gas}': {gas_lyr_path}")
-        gas_lyo_path = os.path.join(lyo_path, gas)
-        Path(gas_lyo_path).mkdir(parents=True, exist_ok=True)
-        logger.info(f"Subdirectory created or already exists for gas '{gas}': {gas_lyo_path}")
+    for path in [lyr_path, lyo_path, od_path, coeff_path]:
+        for gas in gas_list:
+            gas_path = os.path.join(path, gas)
+            Path(gas_path).mkdir(parents=True, exist_ok=True)
+            logger.debug(f"Subdirectory created or already exists for gas '{gas}': {gas_path}")
 
     #output path
     Path('/home/buriola/OD4Mars/output/').mkdir(exist_ok=True)
