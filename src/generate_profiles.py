@@ -12,10 +12,10 @@ from PSGpy.utils import name_file
 
 logger = logging.getLogger(__name__)
 
-def generate_profiles(opath, dates, latitudes, longitudes):
+def generate_profiles(opath, grid):
     # INPUTS
     
-    dates_list = dates.strftime('%Y/%m/%d %H:%M').to_list()
+    dates_list = grid.dates.strftime('%Y/%m/%d %H:%M').to_list()
 
     # Generate profiles
     logger.info("Generating profiles...")
@@ -36,15 +36,15 @@ def generate_profiles(opath, dates, latitudes, longitudes):
     }
 
     for date in dates_list:
-        for lat in latitudes:
-            longs_to_use = [0] if abs(lat) == 90 else longitudes
+        for lat in grid.latitudes:
+            longs_to_use = [0] if abs(lat) == 90 else grid.longitudes
             for long in longs_to_use:
-                logger.debug(f"Generating profile for date: {date}, lat: {lat}, long: {long}")
+                logger.info(f"Generating profile for date: {date}, lat: {lat}, long: {long}")
                 cfg_df['OBJECT-DATE'] = date
                 cfg_df['OBJECT-OBS-LATITUDE'] = str(lat)
                 cfg_df['OBJECT-OBS-LONGITUDE'] = str(long)
-                cfg.dict_to_cfg(cfg_dict=cfg_df, file_path='cfg_temp.txt')
-                run_psg(cfg_file='cfg_temp.txt', type='cfg', wephm = 'y', watm='y', wgeo='n',
-                    out_file=f"{opath}{name_file('cfg', date, lat, long)}.txt", verbose=False)
+                cfg.dict_to_cfg(cfg_dict=cfg_df, file_path='cfg_temp.cfg')
+                run_psg(cfg_file='cfg_temp.cfg', kind='cfg', wephm = 'y', watm='y',
+                    out_file=f"{opath}{name_file('cfg', date, lat, long)}.cfg", verbose=False)
     logger.info("Profile generation completed.")
 

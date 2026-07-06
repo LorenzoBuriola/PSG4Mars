@@ -8,7 +8,7 @@ from scipy.stats import binned_statistic
 logger = logging.getLogger(__name__)
 
 def OD_calc(gas_list, ranges, temperatures, lyo_path, od_path, low_res, cumulative='layer'):
-    tab = read_out(f'{lyo_path}CO2/lyo_CO2_0_freq90_130.txt')
+    tab = read_out(f'{lyo_path}CO2/lyo_CO2_0.0_freq90_130_{1e-4:.0e}.txt')
     hh = tab.columns[1:].to_numpy(dtype='float64')
     for g_name in gas_list:
         logger.info(f'Gas: {g_name}')
@@ -20,7 +20,7 @@ def OD_calc(gas_list, ranges, temperatures, lyo_path, od_path, low_res, cumulati
             for DT in temperatures:
                 logger.info(f'Temperature shift: {DT}')
                 try:
-                    tab = read_out(f'{lyo_path}{g_name}/lyo_{g_name}_{DT}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}.txt')
+                    tab = read_out(f'{lyo_path}{g_name}/lyo_{g_name}_{DT}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}_{1e-4:.0e}.txt')
                     tab = tab[:400000] # Limit to the first 400000 rows
                     tab = OD_compute(tab, altitude=hh)
                     if low_res <= 1e-4:
@@ -28,7 +28,7 @@ def OD_calc(gas_list, ranges, temperatures, lyo_path, od_path, low_res, cumulati
                         logger.debug(f'Low resolution: {low_res:.0e}, no binning applied')
                         low_freqs = tab.freq.to_numpy()
                         tab=tab.iloc[:,1:]
-                        mask = np.ones_like(tab)
+                        mask = np.ones(tab.shape, dtype=bool)
                     else:
                         logger.debug(f'Low resolution: {low_res:.0e}, applying binning')
                         tab, mask, low_freqs = OD_binning(tab, 40/low_res, cumulative=cumulative)
@@ -81,7 +81,7 @@ def OD_binning(high_res, n_bins, cumulative='layer'):
         #Compute transmittance and cumulative transmittance
         trn = np.exp(-ods)
         binned,edges,_ = binned_statistic(x=f_high,values=trn,statistic='mean',bins=n_bins)
-        mask = np.zeros_like(binned)
+        mask = np.zeros_like(binned, dtype=bool)
         if cumulative in ['top', 'bottom']:
             if cumulative == 'top':
                 #Cumulative transmittance from the top of the atmosphere:
@@ -121,7 +121,7 @@ def OD_binning(high_res, n_bins, cumulative='layer'):
 
     elif cumulative == 'od':
         od_bin,edges,_ = binned_statistic(x=f_high,values=ods,statistic='mean',bins=n_bins)
-        mask = np.zeros_like(od_bin)
+        mask = np.zeros_like(od_bin, dtype=bool)
 
     low_freqs = np.round((edges[:-1] + edges[1:]) / 2, 4)
     return od_bin.T, mask.T, low_freqs

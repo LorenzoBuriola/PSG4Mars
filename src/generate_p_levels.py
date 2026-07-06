@@ -12,15 +12,15 @@ def custom_edges(aa, nbin):
                      np.arange(nn),
                      np.sort(aa))
 
-def generate_p_levels(latitudes, longitudes, dates, p_filename, ofile):
+def generate_p_levels(grid, p_filename, ofile):
     logger.info("Generating pressure levels...")
-    dates_list = dates.strftime('%Y/%m/%d %H:%M').to_list()
+    dates_list = grid.dates.strftime('%Y/%m/%d %H:%M').to_list()
     p = []
     for date in dates_list:
-        for lat in latitudes:
-            longs_to_use = [0] if abs(lat) == 90 else longitudes
+        for lat in grid.latitudes:
+            longs_to_use = [0] if abs(lat) == 90 else grid.longitudes
             for long in longs_to_use:
-                temp_cfg = cfg.read_cfg(f"{p_filename}{name_file('cfg', date, lat, long)}.txt")
+                temp_cfg = cfg.read_cfg(f"{p_filename}{name_file('cfg', date, lat, long)}.cfg")
                 temp_df = cfg.read_atm_layers(temp_cfg)
                 p.append(temp_df.Pressure)
     p = np.asarray(p)
@@ -34,10 +34,10 @@ def generate_p_levels(latitudes, longitudes, dates, p_filename, ofile):
     e_high = custom_edges(p_high,30)
     ee = np.unique(np.concatenate([e_low,e_med,e_high]))
     
-    logger.debug('******************************')
-    logger.debug(f"Pressure levels generated:")
+    logger.info('******************************')
+    logger.info(f"Pressure levels generated:")
     for i in range(len(ee)):
-        logger.debug(f"Level {i+1}:\t{ee[i]:.3}")
+        logger.info(f"Level {i+1}:\t{ee[i]:.3}")
 
     np.save(ofile, ee)
     logger.info("Pressure level generation completed.")

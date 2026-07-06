@@ -9,8 +9,8 @@ from PSGpy.utils import name_file
 
 logger = logging.getLogger(__name__)
 
-def generate_mean_profiles(latitudes, longitudes, dates, ipath, p_filename, csv_ofile):
-    dates_list = dates.strftime('%Y/%m/%d %H:%M').to_list()
+def generate_mean_profiles(grid, ipath, p_filename, csv_ofile):
+    dates_list = grid.dates.strftime('%Y/%m/%d %H:%M').to_list()
     tt = []
     h2o = []
     co = []
@@ -23,10 +23,10 @@ def generate_mean_profiles(latitudes, longitudes, dates, ipath, p_filename, csv_
 
     logger.info('Reading profiles from cfg files and interpolating to pressure edges...')
     for date in dates_list:
-        for lat in latitudes:
-            longs_to_use = [0] if abs(lat) == 90 else longitudes
+        for lat in grid.latitudes:
+            longs_to_use = [0] if abs(lat) == 90 else grid.longitudes
             for long in longs_to_use:
-                temp_cfg = cfg.read_cfg(f"{ipath}{name_file('cfg', date, lat, long)}.txt")
+                temp_cfg = cfg.read_cfg(f"{ipath}{name_file('cfg', date, lat, long)}.cfg")
                 temp_df = cfg.read_atm_layers(temp_cfg)[::-1]  # Reverse the order to match pressure edges
                 P = temp_df.Pressure.to_numpy()
                 T = temp_df.Temperature.to_numpy()
