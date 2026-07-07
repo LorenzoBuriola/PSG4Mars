@@ -6,11 +6,28 @@ from PSGpy.utils import name_file
 
 logger = logging.getLogger(__name__)
 
-def custom_edges(aa, nbin):
-    nn = len(aa)
-    return np.interp(np.linspace(0, nn, nbin + 1),
-                     np.arange(nn),
-                     np.sort(aa))
+def custom_edges(aa, pcut1, pcut2, n1, n2, n3):
+    low  = aa[aa < pcut2]
+    mid  = aa[(aa >= pcut2) & (aa <= pcut1)]
+    high = aa[aa > pcut1]
+
+    e_low = np.quantile(low, np.linspace(0, 1, n1 + 1))
+    e_mid = np.quantile(mid, np.linspace(0, 1, n2 + 1))
+    e_high = np.quantile(high, np.linspace(0, 1, n3 + 1))
+
+    # Force the boundaries
+    e_low[-1] = pcut2
+    e_mid[0] = pcut2
+    e_mid[-1] = pcut1
+    e_high[0] = pcut1
+
+    # Join without duplicating boundaries
+    edges = np.unique(np.concatenate([
+        e_low,
+        e_mid[1:],
+        e_high[1:]
+    ]))
+    return edges
 
 def generate_p_levels(grid, p_filename, ofile):
     logger.info("Generating pressure levels...")
@@ -24,15 +41,9 @@ def generate_p_levels(grid, p_filename, ofile):
                 temp_df = cfg.read_atm_layers(temp_cfg)
                 p.append(temp_df.Pressure)
     p = np.asarray(p)
-    pcut1 = 1e-8
-    pcut2 = 1e-3
-    plow = p[p <= pcut1]
-    e_low = custom_edges(plow, 5)
-    p_med = p[(p>pcut1) & (p<pcut2)]
-    e_med = custom_edges(p_med, 20)[1:-1]  # Exclude the last edge to avoid duplication
-    p_high = p[p>=pcut2]
-    e_high = custom_edges(p_high,30)
-    ee = np.unique(np.concatenate([e_low,e_med,e_high]))
+    pcut2 = 1e-8
+    pcut1 = 1e-3
+    ee = custom_edges(p.flatten(), pcut1, pcut2, 5, 20, 30)
     
     logger.info('******************************')
     logger.info(f"Pressure levels generated:")
