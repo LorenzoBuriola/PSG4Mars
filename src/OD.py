@@ -19,26 +19,20 @@ def OD_calc(gas_list, ranges, temperatures, lyo_path, od_path, low_res, cumulati
             list_of_mask = []
             for DT in temperatures:
                 logger.info(f'Temperature shift: {DT}')
-                try:
-                    tab = read_out(f'{lyo_path}{g_name}/lyo_{g_name}_{DT}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}_{1e-4:.0e}.txt')
-                    tab = tab[:400000] # Limit to the first 400000 rows
-                    tab = OD_compute(tab, altitude=hh)
-                    if low_res <= 1e-4:
-                        low_res = 1e-4
-                        logger.debug(f'Low resolution: {low_res:.0e}, no binning applied')
-                        low_freqs = tab.freq.to_numpy()
-                        tab=tab.iloc[:,1:]
-                        mask = np.ones(tab.shape, dtype=bool)
-                    else:
-                        logger.debug(f'Low resolution: {low_res:.0e}, applying binning')
-                        tab, mask, low_freqs = OD_binning(tab, 40/low_res, cumulative=cumulative)
+                tab = read_out(f'{lyo_path}{g_name}/lyo_{g_name}_{DT}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}_{1e-4:.0e}.txt')
+                tab = tab[:400000] # Limit to the first 400000 rows
+                tab = OD_compute(tab, altitude=hh)
+                if low_res <= 1e-4:
+                    low_res = 1e-4
+                    logger.debug(f'Low resolution: {low_res:.0e}, no binning applied')
+                    low_freqs = tab.freq.to_numpy()
+                    tab=tab.iloc[:,1:]
+                    mask = np.ones(tab.shape, dtype=bool)
+                else:
+                    logger.debug(f'Low resolution: {low_res:.0e}, applying binning')
+                    tab, mask, low_freqs = OD_binning(tab, 40/low_res, cumulative=cumulative)
                     list_of_od.append(tab)
                     list_of_mask.append(mask)
-                except ValueError as ERROR:
-                    logger.info("An exception occurred:", type(ERROR).__name__, "–", ERROR)
-                    EE = True
-            if EE:
-                continue
             aa = np.stack(list_of_od, axis=-1)
             mm = np.stack(list_of_mask, axis=-1)
 
@@ -94,6 +88,7 @@ def OD_binning(high_res, n_bins, cumulative='layer'):
                 #Compute the optical depth from the binned transmittance (the minus sign will be applied later)
                 #Mask to avoid division buy zero 
                 mask[1:] = cum_binned[1:] != 0
+                mmask = mask[1:]
                 #Compute the transmittance from the binned cumulative transmittance
                 #and set the values to the optical depth array
                 num = cum_binned[:-1]
@@ -109,12 +104,13 @@ def OD_binning(high_res, n_bins, cumulative='layer'):
                 #Compute the optical depth from the binned transmittance (the minus sign will be applied later)
                 #Mask to avoid division buy zero 
                 mask[:-1] = cum_binned[:-1] != 0
+                mmask = mask[:-1]
                 #Compute the transmittance from the binned cumulative transmittance
                 #and set the values to the optical depth array
                 num = cum_binned[1:]
                 den = cum_binned[:-1]
                 out = binned[1:]
-            np.divide(num, den, out=out, where=mask)
+            np.divide(num, den, out=out, where=mmask)
         #Clip the binned transmittance to avoid log of zero and compute the optical depth
         binned = np.clip(binned, 1e-300, 1.0)
         od_bin = -np.log(binned)

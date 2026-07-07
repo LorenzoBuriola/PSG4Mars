@@ -118,7 +118,7 @@ def main(args):
     # Step 2: Compute pressure levels 
     if flag_p_levels:
         logger.info("Computing pressure levels")
-        generate_p_levels(grid, p_filename, ofile = p_filename)
+        generate_p_levels(grid, profile_path, ofile = p_filename)
     else:
         logger.info("Skipping pressure level computation")
     logger.info(f"Pressure levels saved at '{config['pressure_levels']['path']}'")
