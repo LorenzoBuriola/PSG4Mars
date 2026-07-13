@@ -20,7 +20,7 @@ def OD_fit(gas_list, ranges, degree, od_path, coeff_path, low_res, cumulative='l
         logger.info(f'Gas: {g_name}')
         for i in range(len(ranges)-1):
             logger.info(f'Frequency window: {ranges[i]}-{ranges[i+1]}')
-            ds = xr.open_dataset(f'{od_path}{g_name}/od_{g_name}_freq{ranges[i]}_{ranges[i+1]}_{low_res:.0e}_{cumulative}.nc', engine='netcdf4')
+            ds = xr.open_dataset(f'{od_path}{g_name}/od_{g_name}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}_{low_res:.0e}_{cumulative}.nc', engine='netcdf4')
    #         T = ds.coords['DeltaT'].values
             ods = ds.od
 #            errors = ds.error
@@ -67,7 +67,7 @@ def OD_fit(gas_list, ranges, degree, od_path, coeff_path, low_res, cumulative='l
                 'mask0': mask0,
                 'adj_r_squared': adjusted_r_squared,
             })
-            name_out = f'{coeff_path}{g_name}/coeff_{degree}_{g_name}_freq{ranges[i]}_{ranges[i+1]}_{low_res:.0e}_{cumulative}.nc'
+            name_out = f'{coeff_path}{g_name}/coeff_{degree}_{g_name}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}_{low_res:.0e}_{cumulative}.nc'
             ds.to_netcdf(name_out, mode = 'w')
 
     logger.info('Done')

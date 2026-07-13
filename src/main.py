@@ -197,6 +197,8 @@ def main(args):
             logger.info(f'OD binning from 1e-4 to {low_res:.0e} cm-1')
         logger.info(f'Binning OD with cumulative method: {cumulative}')
         OD_calc(gas_list, ranges_bin - range_offset, temperatures, lyo_path, od_path, low_res, cumulative)
+    else:
+        logger.info(f'Skipping OD binning - using data binned with cumulative method: {cumulative}')
     logger.info(f'OD stored at {od_path}')
 
     if flag_fit:
