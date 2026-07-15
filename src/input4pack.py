@@ -12,7 +12,7 @@ def input4pack(gas_list, ranges, degree, coeff_path, out_path, low_res, cumulati
         v2 = 480.0005
     elif low_res == 1e-4:
         v1 = 330.
-        v2 = 360.
+        v2 = 369.
     else:
         low_res = 1e-2
         v1 = 100.
@@ -29,7 +29,7 @@ def input4pack(gas_list, ranges, degree, coeff_path, out_path, low_res, cumulati
         logger.info(f'Processing {gas}')
         coeff_list =[]
         for rr in ranges[:-1]:
-            coeff = xr.open_dataset(f'{coeff_path}{gas}/coeff_{degree}_{gas}_freq{rr}_{int(rr+40)}_{low_res:.0e}_{cumulative}.nc')
+            coeff = xr.open_dataset(f'{coeff_path}{gas}/coeff_{degree}_{gas}_freq{int(rr)}_{int(rr+40)}_{low_res:.0e}_{cumulative}.nc')
             coeff_list.append(coeff)
         coeff_all = xr.concat(coeff_list, dim='freq')
         coeff_all = coeff_all.sortby('freq').sel(freq=slice(v1 - eps, v2 + eps))
