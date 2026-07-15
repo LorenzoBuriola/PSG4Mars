@@ -188,14 +188,14 @@ def main(args):
             cumulative = 'layer'
         logger.info(f'Cumulative method: {cumulative}')
         degree = config['od-fit']['degree']
-    
-    if flag_bin:
-        # Step 6: Binning OD
         if low_res <= 1e-4:
             cumulative = ''
             logger.info('OD fitted at the higher resolution, no binning is performed')
         else: 
             logger.info(f'OD binning from 1e-4 to {low_res:.0e} cm-1')
+    
+    if flag_bin:
+        # Step 6: Binning OD
         OD_calc(gas_list, ranges_bin - range_offset, temperatures, lyo_path, od_path, low_res, cumulative)
     logger.info(f'OD stored at {od_path}')
 
