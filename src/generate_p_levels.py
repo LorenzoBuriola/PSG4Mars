@@ -17,7 +17,7 @@ def custom_edges(aa, pcut1, pcut2, n1, n2, n3):
     e_high = np.quantile(high, np.linspace(0, 1, n3 + 1))
 
     # Force the boundaries
-    e_low[-1] = pcut2
+    # e_low[-1] = pcut2
     e_mid[0] = pcut2
     e_mid[-1] = pcut1
     e_high[0] = pcut1

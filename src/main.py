@@ -130,9 +130,10 @@ def main(args):
 
     # Step 3: Compute mean profile
     csv_mean = config['mean_profile']['path_csv']
+    flag_altitude = config['mean_profile']['compute_altitude']
     if flag_mean_profile:
         logger.info("Computing mean profile")
-        df_mean = generate_mean_profiles(grid, profile_path, p_filename, csv_ofile=csv_mean)
+        df_mean = generate_mean_profiles(grid, profile_path, p_filename, csv_ofile=csv_mean, flag_altitude=flag_altitude)
     else:
         logger.info("Skipping mean profile computation")
         try:
@@ -142,11 +143,6 @@ def main(args):
             sys.exit(1)
 
     mean_file = cfg_path / config['mean_profile']['path_cfg']
-    flag_altitude = config['mean_profile']['compute_altitude']
-    if flag_altitude:
-        add_altitude(df_mean)
-    else:
-        df_mean = df_mean.drop(columns=['Altitude'], errors='ignore')
     write_mean_cfg(df_prof=df_mean, ofile=mean_file)
     logger.info(f"Mean profile saved at '{mean_file}'")
 #--------------------------------------------------------------------

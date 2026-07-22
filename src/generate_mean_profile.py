@@ -10,7 +10,7 @@ from PSGpy.utils import name_file
 
 logger = logging.getLogger(__name__)
 
-def generate_mean_profiles(grid, ipath, p_filename, csv_ofile):
+def generate_mean_profiles(grid, ipath, p_filename, csv_ofile, flag_altitude=False):
     ipath = Path(ipath)
     p_filename = Path(p_filename)
     csv_ofile = Path(csv_ofile)
@@ -68,6 +68,8 @@ def generate_mean_profiles(grid, ipath, p_filename, csv_ofile):
         'O3' : meanO3
     })
     df_mean['HCl'] = 1e-9
+    if flag_altitude:
+        add_altitude(df_mean)
 
     df_std = pd.DataFrame({
         'Pressure' : p_edges,
