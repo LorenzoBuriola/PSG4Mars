@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 import numpy as np
 import xarray as xr
 import subprocess
@@ -6,6 +7,8 @@ import subprocess
 logger = logging.getLogger(__name__)
 
 def input4pack(gas_list, ranges, degree, coeff_path, out_path, low_res, cumulative='layer'):
+    coeff_path = Path(coeff_path)
+    out_path = Path(out_path)
 
     if low_res == 1e-3:
         v1 = 90.0005
@@ -29,7 +32,7 @@ def input4pack(gas_list, ranges, degree, coeff_path, out_path, low_res, cumulati
         logger.info(f'Processing {gas}')
         coeff_list =[]
         for rr in ranges[:-1]:
-            coeff = xr.open_dataset(f'{coeff_path}{gas}/coeff_{degree}_{gas}_freq{int(rr)}_{int(rr+40)}_{low_res:.0e}_{cumulative}.nc')
+            coeff = xr.open_dataset(str(coeff_path / gas / f'coeff_{degree}_{gas}_freq{int(rr)}_{int(rr+40)}_{low_res:.0e}_{cumulative}.nc'))
             coeff_list.append(coeff)
         coeff_all = xr.concat(coeff_list, dim='freq')
         coeff_all = coeff_all.sortby('freq').sel(freq=slice(v1 - eps, v2 + eps))
@@ -56,6 +59,7 @@ def input4pack(gas_list, ranges, degree, coeff_path, out_path, low_res, cumulati
                     fid1.write(np.array(cind[ind[jj],jj,kk], dtype=np.float64).tobytes())       #cc
 
 def run_packoneband(exe_path, name_database, degree, cumulative, outfile):
+    exe_path = Path(exe_path)
     cmd = ['./pack_oneband.out', name_database, str(degree), cumulative]
     try:
         with open(outfile, 'w') as f:

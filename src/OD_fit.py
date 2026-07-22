@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 import xarray as xr
 import numpy as np
 
@@ -16,11 +17,13 @@ def weighted_polyfit(y, sigma, T, degree):
         return np.full(degree + 1, np.nan)
     
 def OD_fit(gas_list, ranges, degree, od_path, coeff_path, low_res, cumulative='layer'):
+    od_path = Path(od_path)
+    coeff_path = Path(coeff_path)
     for g_name in gas_list:
         logger.info(f'Gas: {g_name}')
         for i in range(len(ranges)-1):
             logger.info(f'Frequency window: {ranges[i]}-{ranges[i+1]}')
-            ds = xr.open_dataset(f'{od_path}{g_name}/od_{g_name}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}_{low_res:.0e}_{cumulative}.nc', engine='netcdf4')
+            ds = xr.open_dataset(str(od_path / g_name / f'od_{g_name}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}_{low_res:.0e}_{cumulative}.nc'), engine='netcdf4')
    #         T = ds.coords['DeltaT'].values
             ods = ds.od
 #            errors = ds.error
@@ -67,29 +70,7 @@ def OD_fit(gas_list, ranges, degree, od_path, coeff_path, low_res, cumulative='l
                 'mask0': mask0,
                 'adj_r_squared': adjusted_r_squared,
             })
-            name_out = f'{coeff_path}{g_name}/coeff_{degree}_{g_name}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}_{low_res:.0e}_{cumulative}.nc'
-            ds.to_netcdf(name_out, mode = 'w')
+            name_out = coeff_path / g_name / f'coeff_{degree}_{g_name}_freq{ranges[i]:.0f}_{ranges[i+1]:.0f}_{low_res:.0e}_{cumulative}.nc'
+            ds.to_netcdf(name_out, mode='w')
 
     logger.info('Done')
-        
-        
-    """
-    if yerror:
-                name_out = f'{coeff_path}{g_name}/coeff_{degree}_yer_{g_name}_freq{ranges[i]}_{ranges[i+1]}.nc'
-                # Use xarray.apply_ufunc to vectorize over frequency and altitude
-                coeffs = xr.apply_ufunc(
-                    weighted_polyfit,
-                    ods,
-                    errors,
-                    xr.DataArray(T, dims=['DeltaT']),  # broadcast T as an input
-                    input_core_dims=[['DeltaT'], ['DeltaT'], ['DeltaT']],
-                    output_core_dims=[['degree']],
-                    vectorize=True,
-                    kwargs={'degree': degree},
-                    dask='parallelized',
-                    output_dtypes=[float]
-                )
-                # Assign coordinate to degree dimension
-                coeffs = coeffs.assign_coords(degree=np.arange(degree + 1)[::-1])  # Reverse to match np.polyfit order
-            else:
-"""

@@ -4,6 +4,7 @@
 # 1 in pipeline
 
 import logging
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import PSGpy.cfg as cfg
@@ -14,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 def generate_profiles(opath, grid):
     # INPUTS
+    project_root = Path(__file__).resolve().parents[1]
+    output_path = Path(opath)
+    temp_cfg = project_root / 'cfg_temp.cfg'
     
     dates_list = grid.dates.strftime('%Y/%m/%d %H:%M').to_list()
 
@@ -43,8 +47,8 @@ def generate_profiles(opath, grid):
                 cfg_df['OBJECT-DATE'] = date
                 cfg_df['OBJECT-OBS-LATITUDE'] = str(lat)
                 cfg_df['OBJECT-OBS-LONGITUDE'] = str(long)
-                cfg.dict_to_cfg(cfg_dict=cfg_df, file_path='cfg_temp.cfg')
-                run_psg(cfg_file='cfg_temp.cfg', kind='cfg', wephm = 'y', watm='y',
-                    out_file=f"{opath}{name_file('cfg', date, lat, long)}.cfg", verbose=False)
+                cfg.dict_to_cfg(cfg_dict=cfg_df, file_path=str(temp_cfg))
+                run_psg(cfg_file=str(temp_cfg), kind='cfg', wephm='y', watm='y',
+                    out_file=output_path / f"{name_file('cfg', date, lat, long)}.cfg", verbose=False)
     logger.info("Profile generation completed.")
 
