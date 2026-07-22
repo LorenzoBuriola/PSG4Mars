@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import PSGpy.cfg as cfg
@@ -30,6 +31,8 @@ def custom_edges(aa, pcut1, pcut2, n1, n2, n3):
     return edges
 
 def generate_p_levels(grid, p_filename, ofile):
+    p_filename = Path(p_filename)
+    ofile = Path(ofile)
     logger.info("Generating pressure levels...")
     dates_list = grid.dates.strftime('%Y/%m/%d %H:%M').to_list()
     p = []
@@ -37,7 +40,7 @@ def generate_p_levels(grid, p_filename, ofile):
         for lat in grid.latitudes:
             longs_to_use = [0] if abs(lat) == 90 else grid.longitudes
             for long in longs_to_use:
-                temp_cfg = cfg.read_cfg(f"{p_filename}{name_file('cfg', date, lat, long)}.cfg")
+                temp_cfg = cfg.read_cfg(str(p_filename / f"{name_file('cfg', date, lat, long)}.cfg"))
                 temp_df = cfg.read_atm_layers(temp_cfg)
                 p.append(temp_df.Pressure)
     p = np.asarray(p)

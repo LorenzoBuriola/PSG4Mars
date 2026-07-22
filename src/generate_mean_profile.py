@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 import numpy as np
 import pandas as pd
 #import matplotlib.pyplot as plt
@@ -10,6 +11,9 @@ from PSGpy.utils import name_file
 logger = logging.getLogger(__name__)
 
 def generate_mean_profiles(grid, ipath, p_filename, csv_ofile):
+    ipath = Path(ipath)
+    p_filename = Path(p_filename)
+    csv_ofile = Path(csv_ofile)
     dates_list = grid.dates.strftime('%Y/%m/%d %H:%M').to_list()
     tt = []
     h2o = []
@@ -26,7 +30,7 @@ def generate_mean_profiles(grid, ipath, p_filename, csv_ofile):
         for lat in grid.latitudes:
             longs_to_use = [0] if abs(lat) == 90 else grid.longitudes
             for long in longs_to_use:
-                temp_cfg = cfg.read_cfg(f"{ipath}{name_file('cfg', date, lat, long)}.cfg")
+                temp_cfg = cfg.read_cfg(str(ipath / f"{name_file('cfg', date, lat, long)}.cfg"))
                 temp_df = cfg.read_atm_layers(temp_cfg)[::-1]  # Reverse the order to match pressure edges
                 P = temp_df.Pressure.to_numpy()
                 T = temp_df.Temperature.to_numpy()
@@ -98,7 +102,7 @@ def add_altitude(df):
     df.insert(2, 'Altitude', hh / 1000)
 
 def write_mean_cfg(df_prof, ofile) -> None:
-    if isinstance(df_prof, str):
+    if isinstance(df_prof, (str, Path)):
         atm = pd.read_csv(df_prof, header=0)
     else:
         atm = df_prof
@@ -147,4 +151,4 @@ def write_mean_cfg(df_prof, ofile) -> None:
         cfg_df[f'ATMOSPHERE-LAYER-{i+1}'] = ','.join('{:.3e}'.format(n) for n in atm.iloc[i+1,:].to_list())
     cfg_df['ATMOSPHERE-PRESSURE'] = atm.loc[0,'Pressure']
     cfg_df['SURFACE-TEMPERATURE'] = atm.loc[0,'Temperature']
-    cfg.dict_to_cfg(cfg_df, ofile)
+    cfg.dict_to_cfg(cfg_df, str(ofile))

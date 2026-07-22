@@ -1,9 +1,11 @@
 import numpy as np
+from pathlib import Path
 import PSGpy.cfg as cfg
 import PSGpy.atm_obj as atm
 
 def generate_OD_cfg(gas_list, ifile, opath):
-    cfg_dict = cfg.read_cfg(ifile)
+    opath = Path(opath)
+    cfg_dict = cfg.read_cfg(str(ifile))
     for g_name in gas_list:
         temp = cfg_dict.copy()
         atmos = atm.atmosphere()
@@ -17,4 +19,4 @@ def generate_OD_cfg(gas_list, ifile, opath):
             temp['ATMOSPHERE-ABUN'] = '1,1,1'
             temp['ATMOSPHERE-TYPE'] = 'HIT[1:1],HIT[1:2],HIT[1:3]'
             temp['ATMOSPHERE-NGAS'] = 3
-        cfg.dict_to_cfg(cfg_dict=temp,file_path=f'{opath}cfg_{g_name}.txt')
+        cfg.dict_to_cfg(cfg_dict=temp, file_path=str(opath / f'cfg_{g_name}.txt'))
